@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Mon Programme</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Programme" />
+  <meta name="theme-color" content="#0e0e0e" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0e0e;
+      --bg2: #161616;
+      --bg3: #1e1e1e;
+      --bg4: #252525;
+      --text: #f0ede4;
+      --text2: #888880;
+      --text3: #555550;
+      --accent: #c8f535;
+      --accent2: #a8d520;
+      --accent-dim: rgba(200,245,53,0.12);
+      --border: rgba(255,255,255,0.06);
+      --border2: rgba(255,255,255,0.12);
+      --red: #ff4d4d;
+      --red-dim: rgba(255,77,77,0.12);
+      --blue: #5b8fff;
+      --blue-dim: rgba(91,143,255,0.12);
+      --gold: #f5c842;
+      --gold-dim: rgba(245,200,66,0.12);
+      --radius: 14px;
+      --radius-sm: 8px;
+      --font-display: 'Syne', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font-display);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── LAYOUT ── */
+    .app {
+      max-width: 520px; margin: 0 auto;
+      padding: 0 1rem calc(4rem + env(safe-area-inset-bottom));
+      padding-top: env(safe-area-inset-top);
+    }
+
+    /* ── HEADER ── */
+    .header {
+      padding: 2rem 0 1.5rem;
+      display: flex; align-items: flex-end; justify-content: space-between;
+    }
+    .header-left h1 {
+      font-size: 28px; font-weight: 800; letter-spacing: -0.03em;
+      line-height: 1.2; color: var(--text);
+    }
+    .header-left p {
+      font-size: 12px; color: var(--text3); margin-top: 6px;
+      font-family: var(--font-mono); letter-spacing: 0.02em;
+    }
+    .export-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 14px; background: var(--bg3);
+      border: 0.5px solid var(--border2); border-radius: 20px;
+      color: var(--text2); font-size: 12px; cursor: pointer;
+      font-family: var(--font-mono); white-space: nowrap;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .export-btn:hover { background: var(--bg4); color: var(--text); border-color: var(--text3); }
+    .export-btn svg { opacity: 0.7; }
+
+    /* ── DAYS NAV ── */
+    .days-nav {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+      gap: 6px; margin-bottom: 1.75rem;
+    }
+    .day-btn {
+      padding: 8px 4px;
+      border-radius: 10px; border: 0.5px solid var(--border);
+      background: var(--bg2); cursor: pointer;
+      font-size: 11px; font-weight: 600; color: var(--text3);
+      font-family: var(--font-display); letter-spacing: 0.02em;
+      transition: all 0.15s; text-transform: uppercase;
+      text-align: center; width: 100%;
+    }
+    .day-btn.active {
+      background: var(--accent); color: #0e0e0e;
+      border-color: var(--accent);
+    }
+    .day-btn:hover:not(.active) { background: var(--bg3); color: var(--text2); border-color: var(--border2); }
+
+    /* ── EDIT BUTTON ── */
+    .edit-btn {
+      width: 28px; height: 28px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      border: 0.5px solid var(--border); border-radius: 7px;
+      background: transparent; color: var(--text3);
+      cursor: pointer; transition: all 0.15s; font-size: 13px;
+    }
+    .edit-btn:hover { background: var(--bg3); color: var(--text2); border-color: var(--border2); }
+    .exercise-card.editing .edit-btn {
+      background: var(--accent-dim); color: var(--accent); border-color: rgba(200,245,53,0.3);
+    }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: 11px; font-weight: 700; color: var(--text3);
+      text-transform: uppercase; letter-spacing: 0.1em;
+      font-family: var(--font-mono);
+    }
+    .section-count {
+      font-size: 11px; color: var(--text3); font-family: var(--font-mono);
+    }
+
+    /* ── EXERCISE CARD ── */
+    .exercise-card {
+      background: var(--bg2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .exercise-card:hover { border-color: var(--border2); }
+    .exercise-card.editing {
+      border-color: rgba(200,245,53,0.3);
+      box-shadow: 0 0 0 1px rgba(200,245,53,0.08), 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    .ex-main {
+      padding: 14px 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .ex-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .ex-num {
+      font-size: 10px; font-family: var(--font-mono); color: var(--text3);
+      flex-shrink: 0; width: 16px; text-align: right;
+    }
+    .ex-name {
+      font-size: 15px; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ex-name input {
+      width: 100%; border: none; background: transparent;
+      font-size: 15px; font-weight: 600; color: var(--text);
+      font-family: var(--font-display); outline: none;
+    }
+    .ex-right { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+
+    .badge {
+      font-size: 10px; padding: 3px 7px; border-radius: 6px;
+      white-space: nowrap; font-weight: 500; font-family: var(--font-mono);
+    }
+    .badge.series { background: var(--blue-dim); color: var(--blue); }
+    .badge.reps   { background: var(--accent-dim); color: var(--accent); }
+    .badge.rest   { background: var(--gold-dim); color: var(--gold); }
+
+    /* Last set highlight */
+    .last-weight {
+      font-size: 10px; font-family: var(--font-mono); color: var(--text3);
+      flex-shrink: 0;
+    }
+    .last-weight.has-data { color: var(--accent2); }
+
+    /* ── EDITING PANEL ── */
+    .ex-details {
+      padding: 0 16px 16px; display: none;
+      border-top: 0.5px solid var(--border);
+    }
+    .exercise-card.open .ex-details { display: block; }
+
+    .details-tabs {
+      display: flex; gap: 4px; padding: 10px 0 12px;
+    }
+    .tab-btn {
+      padding: 5px 12px; border-radius: 6px; border: 0.5px solid var(--border);
+      background: transparent; color: var(--text3);
+      font-size: 11px; font-family: var(--font-mono); cursor: pointer;
+      transition: all 0.15s; white-space: nowrap;
+    }
+    .tab-btn.active { background: var(--bg4); color: var(--text2); border-color: var(--border2); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Settings tab */
+    .fields-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .field-group label { font-size: 10px; color: var(--text3); font-family: var(--font-mono); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .field-group input {
+      width: 100%; padding: 7px 9px;
+      border: 0.5px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg3); color: var(--text);
+      font-size: 13px; font-family: var(--font-mono); outline: none;
+      transition: border-color 0.15s;
+    }
+    .field-group input:focus { border-color: rgba(200,245,53,0.4); background: var(--bg4); }
+    .notes-field { margin-bottom: 12px; }
+    .notes-field label { font-size: 10px; color: var(--text3); font-family: var(--font-mono); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .notes-field input {
+      width: 100%; padding: 7px 9px;
+      border: 0.5px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg3); color: var(--text);
+      font-size: 13px; font-family: var(--font-mono); outline: none;
+    }
+    .notes-field input:focus { border-color: rgba(200,245,53,0.4); background: var(--bg4); }
+
+    /* Weight tracking tab */
+    .weight-log { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .weight-entry {
+      display: grid; grid-template-columns: 90px 1fr 80px 32px;
+      gap: 6px; align-items: center;
+    }
+    .weight-entry input {
+      width: 100%; padding: 6px 9px;
+      border: 0.5px solid var(--border); border-radius: 6px;
+      background: var(--bg3); color: var(--text);
+      font-size: 12px; font-family: var(--font-mono); outline: none;
+      transition: border-color 0.15s;
+    }
+    .weight-entry input:focus { border-color: rgba(200,245,53,0.4); }
+    .weight-entry input.date-field { color: var(--text3); font-size: 11px; }
+    .weight-entry input.notes-mini { font-size: 11px; }
+    .weight-entry .rm-weight {
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+      background: none; border: 0.5px solid var(--border); border-radius: 6px;
+      color: var(--text3); cursor: pointer; font-size: 14px;
+      transition: all 0.15s;
+    }
+    .weight-entry .rm-weight:hover { background: var(--red-dim); color: var(--red); border-color: var(--red); }
+    .weight-log-header {
+      display: grid; grid-template-columns: 90px 1fr 80px 32px;
+      gap: 6px; padding-bottom: 6px; border-bottom: 0.5px solid var(--border); margin-bottom: 4px;
+    }
+    .weight-log-header span { font-size: 10px; color: var(--text3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .add-weight-btn {
+      width: 100%; padding: 7px;
+      border: 0.5px dashed var(--border); border-radius: 8px;
+      background: transparent; color: var(--text3);
+      font-size: 12px; font-family: var(--font-mono); cursor: pointer;
+      transition: all 0.15s; margin-bottom: 12px;
+    }
+    .add-weight-btn:hover { background: var(--bg3); color: var(--text2); border-color: var(--border2); }
+
+    .del-btn {
+      font-size: 11px; color: var(--text3); cursor: pointer;
+      background: none; border: none; padding: 3px 0;
+      font-family: var(--font-mono); transition: color 0.15s;
+    }
+    .del-btn:hover { color: var(--red); }
+
+    /* ── ADD EXERCISE BUTTON ── */
+    .add-btn {
+      width: 100%; padding: 11px;
+      border: 0.5px dashed var(--border); border-radius: var(--radius);
+      background: transparent; color: var(--text3);
+      font-size: 13px; font-family: var(--font-display); font-weight: 600;
+      cursor: pointer; margin-top: 4px;
+      transition: all 0.15s;
+    }
+    .add-btn:hover { background: var(--bg2); border-color: var(--border2); color: var(--text2); }
+
+    /* ── REST DAY ── */
+    .rest-day {
+      text-align: center; padding: 4rem 1rem;
+    }
+    .rest-icon { font-size: 40px; margin-bottom: 12px; }
+    .rest-day h2 { font-size: 22px; font-weight: 800; color: var(--text2); margin-bottom: 6px; }
+    .rest-day p { font-size: 13px; color: var(--text3); font-family: var(--font-mono); }
+
+    /* ── PROGRESS MINI CHART ── */
+    .progress-chart {
+      height: 48px; position: relative; margin-bottom: 4px;
+    }
+    .progress-chart canvas { width: 100%; height: 100%; }
+    .chart-empty { font-size: 11px; color: var(--text3); font-family: var(--font-mono); padding: 14px 0; text-align: center; }
+
+    /* ── FOOTER ── */
+    .footer {
+      font-size: 11px; color: var(--text3); text-align: center;
+      margin-top: 2rem; padding-top: 1rem;
+      border-top: 0.5px solid var(--border);
+      font-family: var(--font-mono);
+    }
+
+    /* ── DAY EDIT MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; padding: 1rem; backdrop-filter: blur(4px);
+      animation: fadeIn 0.15s ease;
+    }
+    @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+    .modal {
+      background: var(--bg2); border: 0.5px solid var(--border2);
+      border-radius: var(--radius); padding: 20px; width: 100%; max-width: 360px;
+      animation: slideUp 0.15s ease;
+    }
+    @keyframes slideUp { from { transform:translateY(12px); opacity:0 } to { transform:translateY(0); opacity:1 } }
+    .modal-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+    .modal-field { margin-bottom: 12px; }
+    .modal-field label { font-size: 10px; color: var(--text3); font-family: var(--font-mono); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .modal-field input {
+      width: 100%; padding: 8px 10px;
+      border: 0.5px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--bg3); color: var(--text);
+      font-size: 14px; font-family: var(--font-display); font-weight: 600; outline: none;
+      transition: border-color 0.15s;
+    }
+    .modal-field input:focus { border-color: rgba(200,245,53,0.4); }
+    .modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+    .modal-btn {
+      flex: 1; padding: 9px;
+      border-radius: var(--radius-sm); border: 0.5px solid var(--border2);
+      font-size: 13px; font-family: var(--font-display); font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .modal-btn.primary { background: var(--accent); color: #0e0e0e; border-color: var(--accent); }
+    .modal-btn.primary:hover { background: var(--accent2); }
+    .modal-btn.secondary { background: transparent; color: var(--text2); }
+    .modal-btn.secondary:hover { background: var(--bg3); }
+    .modal-btn.danger { background: var(--red-dim); color: var(--red); border-color: transparent; }
+    .modal-btn.danger:hover { background: rgba(255,77,77,0.2); }
+    .modal-sep { height: 0.5px; background: var(--border); margin: 12px 0; }
+    .day-btn-wrap { position: relative; display: flex; align-items: center; }
+    .day-edit-icon {
+      position: absolute; right: -3px; top: -3px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--bg3); border: 0.5px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; opacity: 0; transition: opacity 0.15s;
+      font-size: 8px; color: var(--text3); line-height: 1;
+    }
+    .day-btn-wrap:hover .day-edit-icon { opacity: 1; }
+    .add-day-btn {
+      padding: 8px 4px;
+      border-radius: 10px; border: 0.5px dashed var(--border);
+      background: transparent; cursor: pointer;
+      font-size: 18px; color: var(--text3); line-height: 1;
+      font-family: var(--font-display); transition: all 0.15s;
+      text-align: center; width: 100%;
+    }
+    .add-day-btn:hover { background: var(--bg2); border-color: var(--border2); color: var(--text2); }
+
+    /* ── PRINT STYLES ── */
+    @media print {
+      body { background: #fff; color: #000; }
+      .days-nav, .header p, .export-btn, .footer, .ex-details, .add-btn { display: none !important; }
+      .app { max-width: 100%; padding: 0; }
+      .header { padding: 0.5rem 0; }
+      .header-left h1 { background: none; -webkit-text-fill-color: #000; font-size: 20px; }
+      .exercise-card { border: 1px solid #ddd; background: #fff; break-inside: avoid; margin-bottom: 6px; }
+      .ex-main { padding: 10px 12px; }
+      .badge { border: 1px solid #ddd; }
+      .badge.series { background: #dbeafe; color: #1e40af; }
+      .badge.reps   { background: #f0fdf4; color: #166534; }
+      .badge.rest   { background: #fefce8; color: #854d0e; }
+      .section-title { color: #666; }
+      .print-all-days .day-section { margin-bottom: 1.5rem; page-break-inside: avoid; }
+      .all-days-grid { display: block; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-left">
+      <h1>Mon programme</h1>
+    </div>
+  </div>
+
+  <div class="days-nav" id="daysNav"></div>
+  <div id="content"></div>
+  <p class="footer">Touche un exercice · onglet Poids pour suivre tes charges</p>
+</div>
+
+<!-- Day edit modal -->
+<div class="modal-overlay" id="dayModal" style="display:none" onclick="closeDayModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="dayModalTitle">Modifier le jour</div>
+    <div class="modal-field">
+      <label>Nom du jour</label>
+      <input id="dayModalName" type="text" placeholder="ex: Lundi" />
+    </div>
+    <div class="modal-field">
+      <label>Groupe musculaire</label>
+      <input id="dayModalGroupe" type="text" placeholder="ex: Pecs / Triceps" />
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeDayModal()">Annuler</button>
+      <button class="modal-btn primary" onclick="saveDayModal()">Enregistrer</button>
+    </div>
+    <div class="modal-sep" id="dayModalSepDel"></div>
+    <div class="modal-actions" id="dayModalDelRow">
+      <button class="modal-btn danger" onclick="deleteDayModal()">Supprimer ce jour</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden print container -->
+<div id="printContainer" style="display:none"></div>
+
+<script>
+const DEFAULT_DATA = {
+  Lundi: {
+    groupe: "Pecs / Triceps",
+    exercises: [
+      { id: 1,  name: "Développé couché",        series: "4", reps: "8–10",    rest: "2 min", notes: "", weights: [] },
+      { id: 2,  name: "Développé incliné",        series: "3", reps: "10–12",   rest: "90 s",  notes: "", weights: [] },
+      { id: 3,  name: "Écartés poulie",           series: "3", reps: "12–15",   rest: "60 s",  notes: "", weights: [] },
+      { id: 4,  name: "Dips",                     series: "3", reps: "Max",     rest: "90 s",  notes: "", weights: [] },
+      { id: 5,  name: "Extensions triceps corde", series: "4", reps: "12",      rest: "60 s",  notes: "", weights: [] },
+    ]
+  },
+  Mardi: {
+    groupe: "Épaules / Abdos",
+    exercises: [
+      { id: 6,  name: "Développé militaire",   series: "4", reps: "8–10",    rest: "2 min", notes: "", weights: [] },
+      { id: 7,  name: "Élévations latérales",  series: "4", reps: "15–20",   rest: "45 s",  notes: "", weights: [] },
+      { id: 8,  name: "Oiseau (reverse fly)",  series: "3", reps: "15",      rest: "60 s",  notes: "", weights: [] },
+      { id: 9,  name: "Shrugs (trapèzes)",     series: "4", reps: "12",      rest: "60 s",  notes: "", weights: [] },
+      { id: 10, name: "Relevé de jambes",      series: "4", reps: "15–20",   rest: "60 s",  notes: "", weights: [] },
+      { id: 11, name: "Gainage ballon",        series: "3", reps: "12–15",   rest: "60 s",  notes: "", weights: [] },
+    ]
+  },
+  Jeudi: {
+    groupe: "Dos / Biceps",
+    exercises: [
+      { id: 12, name: "Tirage poitrine",           series: "4", reps: "10–12",   rest: "90 s", notes: "", weights: [] },
+      { id: 13, name: "Rowing haltère (1 bras)",   series: "3", reps: "10/bras", rest: "90 s", notes: "", weights: [] },
+      { id: 14, name: "Face pull",                 series: "3", reps: "15",      rest: "60 s", notes: "", weights: [] },
+      { id: 15, name: "Curl barre EZ",             series: "4", reps: "10",      rest: "60 s", notes: "", weights: [] },
+      { id: 16, name: "Curl marteau",              series: "3", reps: "12",      rest: "60 s", notes: "", weights: [] },
+    ]
+  },
+  Vendredi: {
+    groupe: "Jambes / Abdos",
+    exercises: [
+      { id: 17, name: "Presse à cuisses",   series: "4", reps: "12",   rest: "2 min", notes: "", weights: [] },
+      { id: 18, name: "Leg extension",      series: "3", reps: "15",   rest: "60 s",  notes: "", weights: [] },
+      { id: 19, name: "Leg curl",           series: "3", reps: "15",   rest: "60 s",  notes: "", weights: [] },
+      { id: 20, name: "Mollets à la presse",series: "4", reps: "15",   rest: "60 s",  notes: "", weights: [] },
+      { id: 21, name: "Gainage (planche)",  series: "3", reps: "1 min",rest: "45 s",  notes: "", weights: [] },
+    ]
+  },
+};
+
+let state = JSON.parse(localStorage.getItem('prog_muscu_v2') || 'null') || DEFAULT_DATA;
+// Migrate old data: add weights array if missing
+Object.values(state).forEach(d => d.exercises && d.exercises.forEach(ex => { if (!ex.weights) ex.weights = []; }));
+
+const days = Object.keys(state);
+let activeDay = days[0];
+let editingId = null;
+let activeTab = {}; // exId -> 'settings'|'weights'
+let openDetails = {}; // exId -> bool
+let nextId = 300;
+
+function save() {
+  try { localStorage.setItem('prog_muscu_v2', JSON.stringify(state)); } catch(e) {}
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getLastWeight(ex) {
+  if (!ex.weights || !ex.weights.length) return null;
+  return ex.weights[ex.weights.length - 1];
+}
+
+// ── RENDER ──────────────────────────────────────────────
+
+function renderNav() {
+  const btns = days.map(d => {
+    const g = state[d].groupe || d;
+    return `<div class="day-btn-wrap">
+      <button class="day-btn ${d === activeDay ? 'active' : ''}" onclick="selectDay('${d}')">${g}</button>
+      <span class="day-edit-icon" onclick="openDayModal('${d}')" title="Modifier">&#9998;</span>
+    </div>`;
+  }).join('');
+  document.getElementById('daysNav').innerHTML = btns +
+    '<button class="add-day-btn" onclick="openAddDayModal()" title="Ajouter un jour">+</button>';
+}
+
+function renderContent() {
+  const day = state[activeDay];
+  const el = document.getElementById('content');
+  if (!day.exercises.length) {
+    el.innerHTML = `<div class="section-header">
+      <span class="section-title">${esc(day.groupe)}</span>
+      <span class="section-count">0 exercice</span>
+    </div>
+    <button class="add-btn" onclick="addEx()">+ Ajouter un exercice</button>`;
+    return;
+  }
+
+  let html = `<div class="section-header">
+    <span class="section-title">${esc(day.groupe)}</span>
+    <span class="section-count">${day.exercises.length} exercices</span>
+  </div>`;
+
+  day.exercises.forEach((ex, i) => {
+    const ed = editingId === ex.id;
+    const tab = activeTab[ex.id] || 'settings';
+    const lw = getLastWeight(ex);
+    const lwLabel = lw ? `${lw.weight}` : '—';
+    const lwClass = lw ? 'has-data' : '';
+
+    const isOpen = openDetails[ex.id] || ed;
+    html += `<div class="exercise-card ${ed ? 'editing' : ''} ${isOpen ? 'open' : ''}" id="card-${ex.id}">
+      <div class="ex-main" onclick="toggleDetails(${ex.id})">
+        <div class="ex-left">
+          <span class="ex-num">${i + 1}</span>
+          <div class="ex-name">${ed
+            ? `<input value="${esc(ex.name)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'name',this.value)" />`
+            : esc(ex.name)
+          }</div>
+        </div>
+        <div class="ex-right">
+          <span class="last-weight ${lwClass}" title="Dernier poids">${lwLabel}</span>
+          <span class="badge series">${esc(ex.series)}×</span>
+          <span class="badge reps">${esc(ex.reps)}</span>
+          <span class="badge rest">${esc(ex.rest)}</span>
+          <button class="edit-btn" onclick="event.stopPropagation(); toggleEdit(${ex.id})" title="${ed ? 'Fermer édition' : 'Modifier'}">
+            ${ed ? '✕' : '✎'}
+          </button>
+        </div>
+      </div>
+      ${renderDetails(ex, tab)}
+    </div>`;
+  });
+
+  html += `<button class="add-btn" onclick="addEx()">+ Ajouter un exercice</button>`;
+  el.innerHTML = html;
+}
+
+function renderDetails(ex, tab) {
+  const weightRows = (ex.weights || []).map((w, wi) => `
+    <div class="weight-entry">
+      <input class="date-field" type="date" value="${esc(w.date)}" onclick="event.stopPropagation()"
+        onchange="updateWeight(${ex.id},${wi},'date',this.value)" />
+      <input class="notes-mini" placeholder="Notes séance" value="${esc(w.notes||'')}" onclick="event.stopPropagation()"
+        oninput="updateWeight(${ex.id},${wi},'notes',this.value)" />
+      <input type="text" placeholder="ex: 80 kg" value="${esc(w.weight)}" onclick="event.stopPropagation()"
+        oninput="updateWeight(${ex.id},${wi},'weight',this.value)" />
+      <button class="rm-weight" onclick="event.stopPropagation(); removeWeight(${ex.id},${wi})">×</button>
+    </div>`).join('');
+
+  const chartHtml = ex.weights && ex.weights.length >= 2
+    ? `<div class="progress-chart"><canvas id="chart-${ex.id}" width="480" height="48"></canvas></div>`
+    : `<div class="chart-empty">${ex.weights && ex.weights.length === 1 ? 'Ajoute une 2e séance pour voir la courbe' : 'Aucune donn\u00e9e de poids pour l\u2019instant'}</div>`;
+
+  return `<div class="ex-details">
+    <div class="details-tabs">
+      <button class="tab-btn ${tab==='settings'?'active':''}" onclick="event.stopPropagation(); setTab(${ex.id},'settings')">Paramètres</button>
+      <button class="tab-btn ${tab==='weights'?'active':''}" onclick="event.stopPropagation(); setTab(${ex.id},'weights')">Suivi poids</button>
+    </div>
+
+    <div class="tab-panel ${tab==='settings'?'active':''}">
+      <div class="fields-grid">
+        <div class="field-group"><label>Séries</label><input value="${esc(ex.series)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'series',this.value)" /></div>
+        <div class="field-group"><label>Reps</label><input value="${esc(ex.reps)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'reps',this.value)" /></div>
+        <div class="field-group"><label>Repos</label><input value="${esc(ex.rest)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'rest',this.value)" /></div>
+      </div>
+      <div class="notes-field">
+        <label>Notes / instructions</label>
+        <input placeholder="Technique, sensation, charge cible…" value="${esc(ex.notes)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'notes',this.value)" />
+      </div>
+      <button class="del-btn" onclick="event.stopPropagation(); deleteEx(${ex.id})">— Supprimer cet exercice</button>
+    </div>
+
+    <div class="tab-panel ${tab==='weights'?'active':''}">
+      ${chartHtml}
+      <div class="weight-log">
+        ${ex.weights && ex.weights.length ? `<div class="weight-log-header">
+          <span>Date</span><span>Notes</span><span>Charge</span><span></span>
+        </div>` : ''}
+        ${weightRows}
+      </div>
+      <button class="add-weight-btn" onclick="event.stopPropagation(); addWeight(${ex.id})">+ Ajouter une séance</button>
+    </div>
+  </div>`;
+}
+
+// ── MINI CHART ──────────────────────────────────────────
+
+function drawCharts() {
+  const day = state[activeDay];
+  if (!day.exercises) return;
+  day.exercises.forEach(ex => {
+    if (editingId !== ex.id) return;
+    const tab = activeTab[ex.id] || 'settings';
+    if (tab !== 'weights') return;
+    if (!ex.weights || ex.weights.length < 2) return;
+    const canvas = document.getElementById(`chart-${ex.id}`);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth * window.devicePixelRatio || 480;
+    canvas.height = 48 * (window.devicePixelRatio || 1);
+    ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+
+    const vals = ex.weights.map(w => parseFloat(w.weight)).filter(v => !isNaN(v));
+    if (vals.length < 2) return;
+    const W = canvas.offsetWidth || 480, H = 48;
+    const min = Math.min(...vals), max = Math.max(...vals);
+    const range = max - min || 1;
+    const pts = vals.map((v, i) => [
+      (i / (vals.length - 1)) * (W - 20) + 10,
+      H - 8 - ((v - min) / range) * (H - 16)
+    ]);
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Gradient fill
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, 'rgba(200,245,53,0.25)');
+    grad.addColorStop(1, 'rgba(200,245,53,0.0)');
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], H);
+    pts.forEach(p => ctx.lineTo(p[0], p[1]));
+    ctx.lineTo(pts[pts.length-1][0], H);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Line
+    ctx.beginPath();
+    pts.forEach((p, i) => i === 0 ? ctx.moveTo(p[0], p[1]) : ctx.lineTo(p[0], p[1]));
+    ctx.strokeStyle = '#c8f535';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Dots
+    pts.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p[0], p[1], 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#c8f535';
+      ctx.fill();
+    });
+  });
+}
+
+// ── ACTIONS ─────────────────────────────────────────────
+
+function render() { renderNav(); renderContent(); setTimeout(drawCharts, 0); }
+function selectDay(d) { activeDay = d; editingId = null; render(); }
+function toggleDetails(id) {
+  openDetails[id] = !openDetails[id];
+  // opening details auto-focuses but doesn't enter edit mode
+  render();
+}
+
+function toggleEdit(id) {
+  const wasEditing = editingId === id;
+  editingId = wasEditing ? null : id;
+  if (!wasEditing) {
+    openDetails[id] = true; // keep panel open when editing
+    if (!activeTab[id]) activeTab[id] = 'settings';
+  }
+  render();
+}
+function setTab(id, tab) {
+  activeTab[id] = tab; render();
+}
+
+function updateField(id, field, val) {
+  const ex = state[activeDay].exercises.find(e => e.id === id);
+  if (ex) { ex[field] = val; save(); }
+}
+
+function deleteEx(id) {
+  state[activeDay].exercises = state[activeDay].exercises.filter(e => e.id !== id);
+  editingId = null; save(); render();
+}
+
+function addEx() {
+  const id = nextId++;
+  state[activeDay].exercises.push({ id, name: "Nouvel exercice", series: "3", reps: "10", rest: "60 s", notes: "", weights: [] });
+  editingId = id; activeTab[id] = 'settings'; save(); render();
+}
+
+function addWeight(exId) {
+  const ex = state[activeDay].exercises.find(e => e.id === exId);
+  if (!ex) return;
+  ex.weights.push({ date: todayStr(), weight: '', notes: '' });
+  save(); render();
+}
+
+function updateWeight(exId, wi, field, val) {
+  const ex = state[activeDay].exercises.find(e => e.id === exId);
+  if (ex && ex.weights[wi]) { ex.weights[wi][field] = val; save(); }
+}
+
+function removeWeight(exId, wi) {
+  const ex = state[activeDay].exercises.find(e => e.id === exId);
+  if (ex) { ex.weights.splice(wi, 1); save(); render(); }
+}
+
+// ── EXPORT PDF ──────────────────────────────────────────
+
+function exportPDF() {
+  const printWin = window.open('', '_blank');
+  if (!printWin) { alert('Autorise les popups pour exporter en PDF'); return; }
+
+  let html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+  <title>Programme Musculation</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #111; padding: 2rem; }
+    h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { font-size: 12px; color: #888; margin-bottom: 2rem; }
+    .day-section { margin-bottom: 1.75rem; page-break-inside: avoid; }
+    .day-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #333; border-bottom: 1.5px solid #111; padding-bottom: 6px; margin-bottom: 10px; }
+    .groupe-label { font-size: 11px; color: #888; margin-left: 6px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: #888; padding: 4px 8px; border-bottom: 0.5px solid #ddd; }
+    td { padding: 7px 8px; border-bottom: 0.5px solid #eee; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 500; }
+    .bs { background: #dbeafe; color: #1e40af; }
+    .br { background: #f0fdf4; color: #166534; }
+    .bt { background: #fefce8; color: #854d0e; }
+    .weights-mini { font-size: 10px; color: #666; margin-top: 2px; }
+    .rest-day { font-size: 12px; color: #aaa; padding: 6px 8px; font-style: italic; }
+    @media print { body { padding: 1rem; } }
+  </style></head><body>
+  <h1>Mon Programme de Musculation</h1>
+  <p class="subtitle">Généré le ${new Date().toLocaleDateString('fr-FR', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}</p>`;
+
+  Object.entries(state).forEach(([day, data]) => {
+    html += `<div class="day-section"><div class="day-title">${day}<span class="groupe-label">— ${data.groupe}</span></div>`;
+    if (!data.exercises.length) {
+      html += `<p class="rest-day">Jour de repos</p>`;
+    } else {
+      html += `<table><thead><tr><th>#</th><th>Exercice</th><th>Séries</th><th>Reps</th><th>Repos</th><th>Notes</th><th>Dernier poids</th></tr></thead><tbody>`;
+      data.exercises.forEach((ex, i) => {
+        const lw = getLastWeight(ex);
+        const lwStr = lw ? `${lw.weight} (${lw.date})` : '—';
+        html += `<tr>
+          <td style="color:#aaa;font-size:10px">${i+1}</td>
+          <td><strong>${ex.name}</strong>${ex.notes ? `<div style="font-size:10px;color:#888;margin-top:2px">${ex.notes}</div>` : ''}</td>
+          <td><span class="badge bs">${ex.series}</span></td>
+          <td><span class="badge br">${ex.reps}</span></td>
+          <td><span class="badge bt">${ex.rest}</span></td>
+          <td style="font-size:11px;color:#555">${ex.notes || ''}</td>
+          <td style="font-size:11px;color:#333">${lwStr}</td>
+        </tr>`;
+        if (ex.weights && ex.weights.length > 1) {
+          html += `<tr><td colspan="7"><div class="weights-mini">Historique : ${ex.weights.map(w => `${w.date} → ${w.weight}`).join(' · ')}</div></td></tr>`;
+        }
+      });
+      html += `</tbody></table>`;
+    }
+    html += `</div>`;
+  });
+
+  html += `</body></html>`;
+  printWin.document.write(html);
+  printWin.document.close();
+  printWin.onload = () => { printWin.focus(); printWin.print(); };
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+
+// ── DAY MANAGEMENT ──────────────────────────────────────
+
+let dayModalMode = null; // 'edit' | 'add'
+let dayModalTarget = null; // original day name
+
+function openDayModal(dayName) {
+  dayModalMode = 'edit';
+  dayModalTarget = dayName;
+  document.getElementById('dayModalTitle').textContent = 'Modifier — ' + dayName;
+  document.getElementById('dayModalName').value = dayName;
+  document.getElementById('dayModalGroupe').value = state[dayName].groupe;
+  document.getElementById('dayModalSepDel').style.display = '';
+  document.getElementById('dayModalDelRow').style.display = '';
+  document.getElementById('dayModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('dayModalName').select(), 50);
+}
+
+function openAddDayModal() {
+  dayModalMode = 'add';
+  dayModalTarget = null;
+  document.getElementById('dayModalTitle').textContent = 'Ajouter un jour';
+  document.getElementById('dayModalName').value = '';
+  document.getElementById('dayModalGroupe').value = '';
+  document.getElementById('dayModalSepDel').style.display = 'none';
+  document.getElementById('dayModalDelRow').style.display = 'none';
+  document.getElementById('dayModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('dayModalName').focus(), 50);
+}
+
+function closeDayModal(e) {
+  if (e && e.target !== document.getElementById('dayModal')) return;
+  document.getElementById('dayModal').style.display = 'none';
+}
+
+function saveDayModal() {
+  const newName = document.getElementById('dayModalName').value.trim();
+  const newGroupe = document.getElementById('dayModalGroupe').value.trim() || 'Repos';
+  if (!newName) return;
+
+  if (dayModalMode === 'add') {
+    if (state[newName]) { alert('Ce jour existe déjà.'); return; }
+    state[newName] = { groupe: newGroupe, exercises: [] };
+    days.push(newName);
+    activeDay = newName;
+  } else {
+    // Rename: rebuild state preserving order
+    if (newName !== dayModalTarget) {
+      if (state[newName]) { alert('Ce nom est déjà utilisé.'); return; }
+      const newState = {};
+      days.forEach((d, i) => {
+        if (d === dayModalTarget) {
+          newState[newName] = state[d];
+          days[i] = newName;
+        } else {
+          newState[d] = state[d];
+        }
+      });
+      Object.keys(state).forEach(k => delete state[k]);
+      Object.assign(state, newState);
+      if (activeDay === dayModalTarget) activeDay = newName;
+    }
+    state[newName].groupe = newGroupe;
+  }
+
+  save();
+  document.getElementById('dayModal').style.display = 'none';
+  render();
+}
+
+function deleteDayModal() {
+  if (days.length <= 1) { alert('Il faut au moins un jour.'); return; }
+  if (!confirm('Supprimer ce jour et tous ses exercices ?')) return;
+  const idx = days.indexOf(dayModalTarget);
+  days.splice(idx, 1);
+  delete state[dayModalTarget];
+  if (activeDay === dayModalTarget) activeDay = days[Math.max(0, idx - 1)];
+  save();
+  document.getElementById('dayModal').style.display = 'none';
+  render();
+}
+
+render();
+
+// Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
