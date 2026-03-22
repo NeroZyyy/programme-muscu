@@ -463,7 +463,7 @@ const DEFAULT_DATA = {
   },
 };
 
-let state = JSON.parse(localStorage.getItem('prog_muscu_v2') || 'null') || DEFAULT_DATA;
+let state = load() || DEFAULT_DATA;
 // Migrate old data: add weights array if missing
 Object.values(state).forEach(d => d.exercises && d.exercises.forEach(ex => { if (!ex.weights) ex.weights = []; }));
 
@@ -475,7 +475,25 @@ let openDetails = {}; // exId -> bool
 let nextId = 300;
 
 function save() {
-  try { localStorage.setItem('prog_muscu_v2', JSON.stringify(state)); } catch(e) {}
+  try {
+    const data = JSON.stringify(state);
+    localStorage.setItem('prog_muscu_v2', data);
+    // Backup in sessionStorage as fallback
+    sessionStorage.setItem('prog_muscu_v2', data);
+  } catch(e) {
+    console.warn('Save error:', e);
+  }
+}
+
+function load() {
+  try {
+    const ls = localStorage.getItem('prog_muscu_v2');
+    if (ls) return JSON.parse(ls);
+    // Fallback to sessionStorage
+    const ss = sessionStorage.getItem('prog_muscu_v2');
+    if (ss) return JSON.parse(ss);
+  } catch(e) {}
+  return null;
 }
 
 function todayStr() {
