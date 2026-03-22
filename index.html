@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Mon Programme</title>
- 
+
   <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -12,12 +12,12 @@
   <meta name="apple-mobile-web-app-title" content="Programme" />
   <meta name="theme-color" content="#0e0e0e" />
   <link rel="apple-touch-icon" href="icon-192.png" />
- 
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
     :root {
       --bg: #0e0e0e;
       --bg2: #161616;
@@ -42,7 +42,7 @@
       --font-display: 'Syne', sans-serif;
       --font-mono: 'DM Mono', monospace;
     }
- 
+
     :root.light {
       --bg: #f7f6f2;
       --bg2: #ffffff;
@@ -63,7 +63,7 @@
       --gold: #b45309;
       --gold-dim: rgba(180,83,9,0.1);
     }
- 
+
     body {
       font-family: var(--font-display);
       background: var(--bg);
@@ -71,14 +71,14 @@
       min-height: 100vh;
       overflow-x: hidden;
     }
- 
+
     /* ── LAYOUT ── */
     .app {
       max-width: 520px; margin: 0 auto;
       padding: 0 1rem calc(4rem + env(safe-area-inset-bottom));
       padding-top: env(safe-area-inset-top);
     }
- 
+
     /* ── HEADER ── */
     .header {
       padding: 2rem 0 1.5rem;
@@ -102,7 +102,7 @@
     }
     .export-btn:hover { background: var(--bg4); color: var(--text); border-color: var(--text3); }
     .export-btn svg { opacity: 0.7; }
- 
+
     .theme-btn {
       width: 34px; height: 34px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
@@ -111,7 +111,7 @@
       font-size: 15px; transition: all 0.15s;
     }
     .theme-btn:hover { background: var(--bg4); transform: rotate(20deg); }
- 
+
     /* ── DAYS NAV ── */
     .days-nav {
       display: grid;
@@ -135,7 +135,7 @@
     :root.light .day-btn { background: rgba(0,0,0,0.05); color: var(--text); border-color: var(--border2); }
     :root.light .day-btn.active { background: #1a1a18; color: #f7f6f2; border-color: #1a1a18; }
     :root.light .day-btn:hover:not(.active) { background: rgba(0,0,0,0.09); }
- 
+
     /* ── EDIT BUTTON ── */
     .edit-btn {
       width: 28px; height: 28px; flex-shrink: 0;
@@ -148,7 +148,7 @@
     .exercise-card.editing .edit-btn {
       background: var(--accent-dim); color: var(--accent); border-color: rgba(200,245,53,0.3);
     }
- 
+
     /* ── SECTION HEADER ── */
     .section-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -162,7 +162,7 @@
     .section-count {
       font-size: 11px; color: var(--text3); font-family: var(--font-mono);
     }
- 
+
     /* ── EXERCISE CARD ── */
     .exercise-card {
       background: var(--bg2);
@@ -177,7 +177,7 @@
       border-color: rgba(200,245,53,0.3);
       box-shadow: 0 0 0 1px rgba(200,245,53,0.08), 0 4px 24px rgba(0,0,0,0.4);
     }
- 
+
     .ex-main {
       padding: 14px 16px; cursor: pointer;
       display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -197,7 +197,7 @@
       font-family: var(--font-display); outline: none;
     }
     .ex-right { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
- 
+
     .badge {
       font-size: 10px; padding: 3px 7px; border-radius: 6px;
       white-space: nowrap; font-weight: 500; font-family: var(--font-mono);
@@ -205,21 +205,21 @@
     .badge.series { background: var(--blue-dim); color: var(--blue); }
     .badge.reps   { background: var(--accent-dim); color: var(--accent); }
     .badge.rest   { background: var(--gold-dim); color: var(--gold); }
- 
+
     /* Last set highlight */
     .last-weight {
       font-size: 10px; font-family: var(--font-mono); color: var(--text3);
       flex-shrink: 0;
     }
     .last-weight.has-data { color: var(--accent2); }
- 
+
     /* ── EDITING PANEL ── */
     .ex-details {
       padding: 0 16px 16px; display: none;
       border-top: 0.5px solid var(--border);
     }
     .exercise-card.open .ex-details { display: block; }
- 
+
     .details-tabs {
       display: flex; gap: 4px; padding: 10px 0 12px;
     }
@@ -230,10 +230,10 @@
       transition: all 0.15s; white-space: nowrap;
     }
     .tab-btn.active { background: var(--bg4); color: var(--text2); border-color: var(--border2); }
- 
+
     .tab-panel { display: none; }
     .tab-panel.active { display: block; }
- 
+
     /* Settings tab */
     .fields-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
     .field-group label { font-size: 10px; color: var(--text3); font-family: var(--font-mono); display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -254,7 +254,7 @@
       font-size: 13px; font-family: var(--font-mono); outline: none;
     }
     .notes-field input:focus { border-color: rgba(200,245,53,0.4); background: var(--bg4); }
- 
+
     /* Weight tracking tab */
     .weight-log { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
     .weight-entry {
@@ -283,7 +283,7 @@
       gap: 6px; padding-bottom: 6px; border-bottom: 0.5px solid var(--border); margin-bottom: 4px;
     }
     .weight-log-header span { font-size: 10px; color: var(--text3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
- 
+
     .add-weight-btn {
       width: 100%; padding: 7px;
       border: 0.5px dashed var(--border); border-radius: 8px;
@@ -292,14 +292,14 @@
       transition: all 0.15s; margin-bottom: 12px;
     }
     .add-weight-btn:hover { background: var(--bg3); color: var(--text2); border-color: var(--border2); }
- 
+
     .del-btn {
       font-size: 11px; color: var(--text3); cursor: pointer;
       background: none; border: none; padding: 3px 0;
       font-family: var(--font-mono); transition: color 0.15s;
     }
     .del-btn:hover { color: var(--red); }
- 
+
     /* ── ADD EXERCISE BUTTON ── */
     .add-btn {
       width: 100%; padding: 11px;
@@ -310,7 +310,7 @@
       transition: all 0.15s;
     }
     .add-btn:hover { background: var(--bg2); border-color: var(--border2); color: var(--text2); }
- 
+
     /* ── REST DAY ── */
     .rest-day {
       text-align: center; padding: 4rem 1rem;
@@ -318,17 +318,17 @@
     .rest-icon { font-size: 40px; margin-bottom: 12px; }
     .rest-day h2 { font-size: 22px; font-weight: 800; color: var(--text2); margin-bottom: 6px; }
     .rest-day p { font-size: 13px; color: var(--text3); font-family: var(--font-mono); }
- 
+
     /* ── PROGRESS MINI CHART ── */
     .progress-chart {
       height: 48px; position: relative; margin-bottom: 4px;
     }
     .progress-chart canvas { width: 100%; height: 100%; }
     .chart-empty { font-size: 11px; color: var(--text3); font-family: var(--font-mono); padding: 14px 0; text-align: center; }
- 
+
     /* ── FOOTER ── */
- 
- 
+
+
     /* ── DAY EDIT MODAL ── */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.7);
@@ -387,7 +387,7 @@
       text-align: center; width: 100%;
     }
     .add-day-btn:hover { background: var(--bg2); border-color: var(--border2); color: var(--text2); }
- 
+
     /* ── PRINT STYLES ── */
     @media print {
       body { background: #fff; color: #000; }
@@ -415,11 +415,11 @@
     </div>
     <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="Changer le thème">🌙</button>
   </div>
- 
+
   <div class="days-nav" id="daysNav"></div>
   <div id="content"></div>
 </div>
- 
+
 <!-- Day edit modal -->
 <div class="modal-overlay" id="dayModal" style="display:none" onclick="closeDayModal(event)">
   <div class="modal" onclick="event.stopPropagation()">
@@ -442,10 +442,10 @@
     </div>
   </div>
 </div>
- 
+
 <!-- Hidden print container -->
 <div id="printContainer" style="display:none"></div>
- 
+
 <script>
 const DEFAULT_DATA = {
   Lundi: {
@@ -490,18 +490,18 @@ const DEFAULT_DATA = {
     ]
   },
 };
- 
+
 let state = load() || DEFAULT_DATA;
 // Migrate old data: add weights array if missing
 Object.values(state).forEach(d => d.exercises && d.exercises.forEach(ex => { if (!ex.weights) ex.weights = []; }));
- 
+
 const days = Object.keys(state);
 let activeDay = days[0];
 let editingId = null;
 let activeTab = {}; // exId -> 'settings'|'weights'
 let openDetails = {}; // exId -> bool
 let nextId = 300;
- 
+
 function save() {
   try {
     const data = JSON.stringify(state);
@@ -512,7 +512,7 @@ function save() {
     console.warn('Save error:', e);
   }
 }
- 
+
 function load() {
   try {
     const ls = localStorage.getItem('prog_muscu_v2');
@@ -523,18 +523,18 @@ function load() {
   } catch(e) {}
   return null;
 }
- 
+
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
- 
+
 function getLastWeight(ex) {
   if (!ex.weights || !ex.weights.length) return null;
   return ex.weights[ex.weights.length - 1];
 }
- 
+
 // ── RENDER ──────────────────────────────────────────────
- 
+
 function renderNav() {
   const btns = days.map(d => {
     const g = state[d].groupe || d;
@@ -546,7 +546,7 @@ function renderNav() {
   document.getElementById('daysNav').innerHTML = btns +
     '<button class="add-day-btn" onclick="openAddDayModal()" title="Ajouter un jour">+</button>';
 }
- 
+
 function renderContent() {
   const day = state[activeDay];
   const el = document.getElementById('content');
@@ -558,19 +558,19 @@ function renderContent() {
     <button class="add-btn" onclick="addEx()">+ Ajouter un exercice</button>`;
     return;
   }
- 
+
   let html = `<div class="section-header">
     <span class="section-title">${esc(day.groupe)}</span>
     <span class="section-count">${day.exercises.length} exercices</span>
   </div>`;
- 
+
   day.exercises.forEach((ex, i) => {
     const ed = editingId === ex.id;
     const tab = activeTab[ex.id] || 'settings';
     const lw = getLastWeight(ex);
     const lwLabel = lw ? `${lw.weight}` : '—';
     const lwClass = lw ? 'has-data' : '';
- 
+
     const isOpen = openDetails[ex.id] || ed;
     html += `<div class="exercise-card ${ed ? 'editing' : ''} ${isOpen ? 'open' : ''}" id="card-${ex.id}">
       <div class="ex-main" onclick="toggleDetails(${ex.id})">
@@ -594,11 +594,11 @@ function renderContent() {
       ${renderDetails(ex, tab)}
     </div>`;
   });
- 
+
   html += `<button class="add-btn" onclick="addEx()">+ Ajouter un exercice</button>`;
   el.innerHTML = html;
 }
- 
+
 function renderDetails(ex, tab) {
   const weightRows = (ex.weights || []).map((w, wi) => `
     <div class="weight-entry">
@@ -610,17 +610,17 @@ function renderDetails(ex, tab) {
         oninput="updateWeight(${ex.id},${wi},'weight',this.value)" />
       <button class="rm-weight" onclick="event.stopPropagation(); removeWeight(${ex.id},${wi})">×</button>
     </div>`).join('');
- 
+
   const chartHtml = ex.weights && ex.weights.length >= 2
     ? `<div class="progress-chart"><canvas id="chart-${ex.id}" width="480" height="48"></canvas></div>`
     : `<div class="chart-empty">${ex.weights && ex.weights.length === 1 ? 'Ajoute une 2e séance pour voir la courbe' : 'Aucune donn\u00e9e de poids pour l\u2019instant'}</div>`;
- 
+
   return `<div class="ex-details">
     <div class="details-tabs">
       <button class="tab-btn ${tab==='settings'?'active':''}" onclick="event.stopPropagation(); setTab(${ex.id},'settings')">Paramètres</button>
       <button class="tab-btn ${tab==='weights'?'active':''}" onclick="event.stopPropagation(); setTab(${ex.id},'weights')">Suivi poids</button>
     </div>
- 
+
     <div class="tab-panel ${tab==='settings'?'active':''}">
       <div class="fields-grid">
         <div class="field-group"><label>Séries</label><input value="${esc(ex.series)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'series',this.value)" /></div>
@@ -633,7 +633,7 @@ function renderDetails(ex, tab) {
       </div>
       <button class="del-btn" onclick="event.stopPropagation(); deleteEx(${ex.id})">— Supprimer cet exercice</button>
     </div>
- 
+
     <div class="tab-panel ${tab==='weights'?'active':''}">
       ${chartHtml}
       <div class="weight-log">
@@ -646,9 +646,9 @@ function renderDetails(ex, tab) {
     </div>
   </div>`;
 }
- 
+
 // ── MINI CHART ──────────────────────────────────────────
- 
+
 function drawCharts() {
   const day = state[activeDay];
   if (!day.exercises) return;
@@ -663,7 +663,7 @@ function drawCharts() {
     canvas.width = canvas.offsetWidth * window.devicePixelRatio || 480;
     canvas.height = 48 * (window.devicePixelRatio || 1);
     ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
- 
+
     const vals = ex.weights.map(w => parseFloat(w.weight)).filter(v => !isNaN(v));
     if (vals.length < 2) return;
     const W = canvas.offsetWidth || 480, H = 48;
@@ -673,9 +673,9 @@ function drawCharts() {
       (i / (vals.length - 1)) * (W - 20) + 10,
       H - 8 - ((v - min) / range) * (H - 16)
     ]);
- 
+
     ctx.clearRect(0, 0, W, H);
- 
+
     // Gradient fill
     const grad = ctx.createLinearGradient(0, 0, 0, H);
     grad.addColorStop(0, 'rgba(200,245,53,0.25)');
@@ -687,14 +687,14 @@ function drawCharts() {
     ctx.closePath();
     ctx.fillStyle = grad;
     ctx.fill();
- 
+
     // Line
     ctx.beginPath();
     pts.forEach((p, i) => i === 0 ? ctx.moveTo(p[0], p[1]) : ctx.lineTo(p[0], p[1]));
     ctx.strokeStyle = '#c8f535';
     ctx.lineWidth = 1.5;
     ctx.stroke();
- 
+
     // Dots
     pts.forEach(p => {
       ctx.beginPath();
@@ -704,9 +704,9 @@ function drawCharts() {
     });
   });
 }
- 
+
 // ── ACTIONS ─────────────────────────────────────────────
- 
+
 function render() { renderNav(); renderContent(); setTimeout(drawCharts, 0); }
 function selectDay(d) { activeDay = d; editingId = null; render(); }
 function toggleDetails(id) {
@@ -714,7 +714,7 @@ function toggleDetails(id) {
   // opening details auto-focuses but doesn't enter edit mode
   render();
 }
- 
+
 function toggleEdit(id) {
   const wasEditing = editingId === id;
   editingId = wasEditing ? null : id;
@@ -727,46 +727,46 @@ function toggleEdit(id) {
 function setTab(id, tab) {
   activeTab[id] = tab; render();
 }
- 
+
 function updateField(id, field, val) {
   const ex = state[activeDay].exercises.find(e => e.id === id);
   if (ex) { ex[field] = val; save(); }
 }
- 
+
 function deleteEx(id) {
   state[activeDay].exercises = state[activeDay].exercises.filter(e => e.id !== id);
   editingId = null; save(); render();
 }
- 
+
 function addEx() {
   const id = nextId++;
   state[activeDay].exercises.push({ id, name: "Nouvel exercice", series: "3", reps: "10", rest: "60 s", notes: "", weights: [] });
   editingId = id; activeTab[id] = 'settings'; save(); render();
 }
- 
+
 function addWeight(exId) {
   const ex = state[activeDay].exercises.find(e => e.id === exId);
   if (!ex) return;
   ex.weights.push({ date: todayStr(), weight: '', notes: '' });
   save(); render();
 }
- 
+
 function updateWeight(exId, wi, field, val) {
   const ex = state[activeDay].exercises.find(e => e.id === exId);
   if (ex && ex.weights[wi]) { ex.weights[wi][field] = val; save(); }
 }
- 
+
 function removeWeight(exId, wi) {
   const ex = state[activeDay].exercises.find(e => e.id === exId);
   if (ex) { ex.weights.splice(wi, 1); save(); render(); }
 }
- 
+
 // ── EXPORT PDF ──────────────────────────────────────────
- 
+
 function exportPDF() {
   const printWin = window.open('', '_blank');
   if (!printWin) { alert('Autorise les popups pour exporter en PDF'); return; }
- 
+
   let html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
   <title>Programme Musculation</title>
   <style>
@@ -791,7 +791,7 @@ function exportPDF() {
   </style></head><body>
   <h1>Mon Programme de Musculation</h1>
   <p class="subtitle">Généré le ${new Date().toLocaleDateString('fr-FR', { weekday:'long', year:'numeric', month:'long', day:'numeric' })}</p>`;
- 
+
   Object.entries(state).forEach(([day, data]) => {
     html += `<div class="day-section"><div class="day-title">${day}<span class="groupe-label">— ${data.groupe}</span></div>`;
     if (!data.exercises.length) {
@@ -818,23 +818,23 @@ function exportPDF() {
     }
     html += `</div>`;
   });
- 
+
   html += `</body></html>`;
   printWin.document.write(html);
   printWin.document.close();
   printWin.onload = () => { printWin.focus(); printWin.print(); };
 }
- 
+
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
- 
- 
+
+
 // ── DAY MANAGEMENT ──────────────────────────────────────
- 
+
 let dayModalMode = null; // 'edit' | 'add'
 let dayModalTarget = null; // original day name
- 
+
 function openDayModal(dayName) {
   dayModalMode = 'edit';
   dayModalTarget = dayName;
@@ -846,7 +846,7 @@ function openDayModal(dayName) {
   document.getElementById('dayModal').style.display = 'flex';
   setTimeout(() => document.getElementById('dayModalName').select(), 50);
 }
- 
+
 function openAddDayModal() {
   dayModalMode = 'add';
   dayModalTarget = null;
@@ -858,17 +858,17 @@ function openAddDayModal() {
   document.getElementById('dayModal').style.display = 'flex';
   setTimeout(() => document.getElementById('dayModalName').focus(), 50);
 }
- 
+
 function closeDayModal(e) {
   if (e && e.target !== document.getElementById('dayModal')) return;
   document.getElementById('dayModal').style.display = 'none';
 }
- 
+
 function saveDayModal() {
   const newName = document.getElementById('dayModalName').value.trim();
   const newGroupe = document.getElementById('dayModalGroupe').value.trim() || 'Repos';
   if (!newName) return;
- 
+
   if (dayModalMode === 'add') {
     if (state[newName]) { alert('Ce jour existe déjà.'); return; }
     state[newName] = { groupe: newGroupe, exercises: [] };
@@ -893,15 +893,15 @@ function saveDayModal() {
     }
     state[newName].groupe = newGroupe;
   }
- 
+
   save();
   document.getElementById('dayModal').style.display = 'none';
   render();
 }
- 
+
 function deleteDayModal() {
   if (days.length <= 1) { alert('Il faut au moins un jour.'); return; }
-  if (!confirm('Supprimer ce jour et tous ses exercices ?')) return;
+  if (!confirm('Supprimer ce jour et tous ses exercices ?')) return;
   const idx = days.indexOf(dayModalTarget);
   days.splice(idx, 1);
   delete state[dayModalTarget];
@@ -910,14 +910,14 @@ function deleteDayModal() {
   document.getElementById('dayModal').style.display = 'none';
   render();
 }
- 
+
 // ── THEME ──────────────────────────────────────────────
 function toggleTheme() {
   const isLight = document.documentElement.classList.toggle('light');
   document.getElementById('themeBtn').textContent = isLight ? '☀️' : '🌙';
   localStorage.setItem('muscu_theme', isLight ? 'light' : 'dark');
 }
- 
+
 // Apply saved theme on load
 (function() {
   const saved = localStorage.getItem('muscu_theme');
@@ -929,9 +929,9 @@ function toggleTheme() {
     });
   }
 })();
- 
+
 render();
- 
+
 // Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -941,6 +941,3 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
- 
-
-
