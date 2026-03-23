@@ -382,8 +382,8 @@
     .exercise-card.drag-lifted {
       opacity: 0.92;
       transform: scale(1.025) rotate(0.6deg);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 0 1.5px var(--accent);
-      border-color: var(--accent);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 0 1.5px rgba(255,255,255,0.7);
+      border-color: rgba(255,255,255,0.7);
       z-index: 10; position: relative;
     }
     .exercise-card.dragging {
@@ -394,8 +394,8 @@
       box-shadow: none;
     }
     .exercise-card.drag-over {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent), inset 0 0 0 2px var(--accent-dim);
+      border-color: rgba(255,255,255,0.6);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.6), inset 0 0 0 2px rgba(255,255,255,0.06);
       transform: scaleX(1.01);
     }
     .exercise-card .ex-main { cursor: grab; }
@@ -1217,3 +1217,4 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
+ 
