@@ -378,13 +378,25 @@
     .add-day-btn:hover { background: var(--bg2); border-color: var(--border2); color: var(--text2); }
  
     /* ── DRAG AND DROP ── */
-    .exercise-card { touch-action: pan-y; }
+    .exercise-card { touch-action: pan-y; transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, border-color 0.15s ease; }
+    .exercise-card.drag-lifted {
+      opacity: 0.92;
+      transform: scale(1.025) rotate(0.6deg);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 0 1.5px var(--accent);
+      border-color: var(--accent);
+      z-index: 10; position: relative;
+    }
     .exercise-card.dragging {
-      opacity: 0.4; border-style: dashed;
+      opacity: 0.25;
+      transform: scale(0.97);
+      border-style: dashed;
+      border-color: var(--border2);
+      box-shadow: none;
     }
     .exercise-card.drag-over {
-      border-color: rgba(255,255,255,0.5);
-      box-shadow: 0 0 0 1px rgba(255,255,255,0.2);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), inset 0 0 0 2px var(--accent-dim);
+      transform: scaleX(1.01);
     }
     .exercise-card .ex-main { cursor: grab; }
     .exercise-card .ex-main:active { cursor: grabbing; }
@@ -861,26 +873,31 @@ function initDragDrop() {
   cards.forEach(card => {
     const id = parseInt(card.id.replace('card-', ''));
     const mainZone = card.querySelector('.ex-main');
-
+ 
     // Mouse: enable drag on mousedown over the main zone (not buttons/inputs)
     if (mainZone) {
       mainZone.addEventListener('mousedown', e => {
         if (e.target.closest('button, input, a')) return;
         card.setAttribute('draggable', 'true');
+        card.classList.add('drag-lifted');
       });
       mainZone.addEventListener('mouseup', () => {
         card.setAttribute('draggable', 'false');
+        card.classList.remove('drag-lifted');
       });
     }
-
+ 
     card.addEventListener('dragstart', e => {
       if (e.target.closest('button, input, a')) { e.preventDefault(); return; }
       dragSrcId = id;
-      setTimeout(() => card.classList.add('dragging'), 0);
+      setTimeout(() => {
+        card.classList.remove('drag-lifted');
+        card.classList.add('dragging');
+      }, 0);
       e.dataTransfer.effectAllowed = 'move';
     });
     card.addEventListener('dragend', () => {
-      card.classList.remove('dragging');
+      card.classList.remove('dragging', 'drag-lifted');
       card.setAttribute('draggable', 'false');
       document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('drag-over'));
     });
@@ -903,7 +920,7 @@ function initDragDrop() {
       dragSrcId = null;
       save(); render();
     });
-
+ 
     // Touch: start drag on ex-main (not on buttons/inputs)
     let touchCard = null;
     if (mainZone) {
@@ -912,7 +929,13 @@ function initDragDrop() {
         e.preventDefault();
         dragSrcId = id;
         touchCard = card;
-        touchCard.classList.add('dragging');
+        touchCard.classList.add('drag-lifted');
+        setTimeout(() => {
+          if (touchCard) {
+            touchCard.classList.remove('drag-lifted');
+            touchCard.classList.add('dragging');
+          }
+        }, 150);
       }, { passive: false });
     }
     card.addEventListener('touchmove', e => {
@@ -926,7 +949,7 @@ function initDragDrop() {
     }, { passive: false });
     card.addEventListener('touchend', e => {
       if (!touchCard || dragSrcId !== id) return;
-      touchCard.classList.remove('dragging');
+      touchCard.classList.remove('dragging', 'drag-lifted');
       const touch = e.changedTouches[0];
       const els = document.elementsFromPoint(touch.clientX, touch.clientY);
       const target = els.find(el => el.classList.contains('exercise-card') && el !== touchCard);
@@ -969,7 +992,7 @@ function removeWeight(exId, wi) {
   if (ex) { ex.weights.splice(wi, 1); save(); render(); }
 }
  
-
+ 
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
