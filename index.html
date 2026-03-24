@@ -754,6 +754,10 @@
     .session-btn.primary:hover { background: var(--accent2); }
     .session-btn.secondary { background: var(--bg3); color: var(--text2); }
     .session-btn.secondary:hover { background: var(--bg4); }
+    .session-btn.next { background: var(--bg4); color: var(--text); border-color: var(--border2); }
+    .session-btn.next:hover { background: #333; color: #fff; }
+    :root.dark .session-btn.next { background: #333; color: var(--text); }
+    :root.dark .session-btn.next:hover { background: #444; }
  
     .session-nav { display: flex; gap: 8px; padding: 0 1.2rem 1rem; }
     .session-nav-btn {
@@ -815,7 +819,7 @@
     </div>
     <div class="session-actions">
       <button class="session-btn secondary" id="sessionTimerBtn" onclick="startRestTimer()">⏱ Lancer le repos</button>
-      <button class="session-btn primary"   id="sessionNextBtn"  onclick="sessionNext()">Suivant →</button>
+      <button class="session-btn next" id="sessionNextBtn" onclick="sessionNext()">Suivant →</button>
     </div>
   </div>
   <div class="session-nav">
@@ -1498,4 +1502,3 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
- 
