@@ -228,6 +228,11 @@
       border-color: rgba(200,245,53,0.3);
       box-shadow: 0 0 0 1px rgba(200,245,53,0.08), 0 4px 24px rgba(0,0,0,0.4);
     }
+    @keyframes flashSave {
+      0%   { box-shadow: 0 0 0 2px var(--accent); }
+      100% { box-shadow: none; }
+    }
+    .exercise-card.flash-saved { animation: flashSave 0.6s ease-out; }
  
     /* Drag states */
     .exercise-card.drag-lifted {
@@ -341,11 +346,18 @@
  
     /* ── DETAILS PANEL ── */
     .ex-details {
-      padding: 0 16px 16px;
-      display: none;
+      padding: 0 16px 0;
       border-top: 0.5px solid var(--border);
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.25s ease, padding 0.25s ease;
+      overflow: hidden;
     }
-    .exercise-card.open .ex-details { display: block; }
+    .ex-details-inner { min-height: 0; }
+    .exercise-card.open .ex-details {
+      grid-template-rows: 1fr;
+      padding: 0 16px 16px;
+    }
  
     .details-tabs {
       display: flex;
@@ -498,15 +510,18 @@
  
     .del-btn {
       font-size: 11px;
-      color: var(--text3);
+      color: var(--red);
       cursor: pointer;
-      background: none;
-      border: none;
-      padding: 3px 0;
+      background: var(--red-dim);
+      border: 0.5px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
       font-family: var(--font-mono);
-      transition: color 0.15s;
+      transition: all 0.15s;
+      margin-top: 4px;
+      display: inline-block;
     }
-    .del-btn:hover { color: var(--red); }
+    .del-btn:hover { background: rgba(220,38,38,0.2); border-color: var(--red); }
  
     /* ── MINI CHART ── */
     .progress-chart { height: 48px; position: relative; margin-bottom: 4px; }
@@ -670,12 +685,28 @@
       align-items: center;
       justify-content: center;
     }
-    .session-progress { height: 3px; background: var(--border); }
-    .session-progress-bar {
-      height: 100%;
-      background: var(--accent);
-      transition: width 0.4s ease;
+    .session-steps {
+      display: flex;
+      gap: 4px;
+      padding: 8px 1.2rem 0;
     }
+    .session-step {
+      flex: 1;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--border2);
+      transition: background 0.3s ease;
+    }
+    .session-step.done { background: var(--accent2); }
+    .session-step.current { background: var(--accent); }
+    .session-next-ex {
+      font-size: 12px;
+      color: var(--text3);
+      font-family: var(--font-mono);
+      text-align: center;
+      letter-spacing: 0.02em;
+    }
+    .session-next-ex span { color: var(--text2); }
     .session-body {
       flex: 1;
       display: flex;
@@ -795,14 +826,13 @@
     <span class="session-title" id="sessionDayTitle"></span>
     <button class="session-close" onclick="closeSession()">✕</button>
   </div>
-  <div class="session-progress">
-    <div class="session-progress-bar" id="sessionProgressBar"></div>
-  </div>
+  <div class="session-steps" id="sessionSteps"></div>
   <div class="session-body">
     <div class="session-ex-num" id="sessionExNum"></div>
     <div class="session-ex-name" id="sessionExName"></div>
     <div class="session-badges" id="sessionBadges"></div>
     <div class="session-notes" id="sessionNotes"></div>
+    <div class="session-next-ex" id="sessionNextEx"></div>
     <div class="session-timer" id="sessionTimerZone">
       <div class="timer-ring" id="timerRing" style="display:none">
         <svg width="140" height="140" viewBox="0 0 140 140">
@@ -1031,6 +1061,7 @@ function renderDetails(ex, tab) {
  
   return `
   <div class="ex-details">
+    <div class="ex-details-inner">
     <div class="details-tabs">
       <button class="tab-btn ${tab === 'settings' ? 'active' : ''}" onclick="event.stopPropagation(); setTab(${ex.id},'settings')">Paramètres</button>
       <button class="tab-btn ${tab === 'weights'  ? 'active' : ''}" onclick="event.stopPropagation(); setTab(${ex.id},'weights')">Suivi poids</button>
@@ -1067,7 +1098,7 @@ function renderDetails(ex, tab) {
       </div>
       <button class="add-weight-btn" onclick="event.stopPropagation(); addWeight(${ex.id})">+ Ajouter une séance</button>
     </div>
-  </div>`;
+  </div></div>`;
 }
  
 // ── MINI CHART ───────────────────────────────────────────
@@ -1142,13 +1173,28 @@ function toggleEdit(id) {
     if (!activeTab[id]) activeTab[id] = 'settings';
   }
   render();
+  if (!wasEditing) {
+    setTimeout(() => {
+      const input = document.querySelector(`#card-${id} .ex-name input`);
+      if (input) input.focus();
+    }, 30);
+  }
 }
  
 function setTab(id, tab) { activeTab[id] = tab; render(); }
  
 function updateField(id, field, val) {
   const ex = state[activeDay].exercises.find(e => e.id === id);
-  if (ex) { ex[field] = val; save(); }
+  if (!ex) return;
+  ex[field] = val;
+  save();
+  const card = document.getElementById(`card-${id}`);
+  if (card) {
+    card.classList.remove('flash-saved');
+    void card.offsetWidth; // reflow to restart animation
+    card.classList.add('flash-saved');
+    setTimeout(() => card.classList.remove('flash-saved'), 700);
+  }
 }
  
 function addEx() {
@@ -1160,6 +1206,7 @@ function addEx() {
 }
  
 function deleteEx(id) {
+  if (!confirm('Supprimer cet exercice ?')) return;
   state[activeDay].exercises = state[activeDay].exercises.filter(e => e.id !== id);
   editingId = null;
   save(); render();
@@ -1266,7 +1313,7 @@ function initDragDrop() {
               card.classList.add('dragging');
             }
           }, 150);
-        }, 350);
+        }, 200);
       }, { passive: true });
     }
  
@@ -1432,17 +1479,28 @@ function closeSession() {
 function renderSessionEx() {
   const ex    = sessionExs[sessionExIdx];
   const total = sessionExs.length;
+  const next  = sessionExs[sessionExIdx + 1];
+ 
   document.getElementById('sessionDayTitle').textContent    = state[activeDay].groupe;
   document.getElementById('sessionExNum').textContent       = `Exercice ${sessionExIdx + 1} / ${total}`;
   document.getElementById('sessionExName').textContent      = ex.name;
-  document.getElementById('sessionProgressBar').style.width = `${(sessionExIdx / total) * 100}%`;
+  // Step dots
+  document.getElementById('sessionSteps').innerHTML = sessionExs.map((_, i) =>
+    `<div class="session-step ${i < sessionExIdx ? 'done' : i === sessionExIdx ? 'current' : ''}"></div>`
+  ).join('');
+ 
   document.getElementById('sessionBadges').innerHTML =
     `<span class="session-badge series">${esc(ex.series)} séries</span>
      <span class="session-badge reps">${esc(ex.reps)} rép</span>
      <span class="session-badge rest">${esc(ex.rest)}</span>`;
-  document.getElementById('sessionNotes').textContent       = ex.notes || '';
-  document.getElementById('sessionNextBtn').textContent     = sessionExIdx < total - 1 ? 'Suivant →' : '✓ Terminer';
-  document.getElementById('sessionPrevBtn').disabled        = sessionExIdx === 0;
+  document.getElementById('sessionNotes').textContent = ex.notes || '';
+ 
+  // Next exercise
+  const nextEl = document.getElementById('sessionNextEx');
+  nextEl.innerHTML = next ? `Ensuite : <span>${esc(next.name)}</span>` : '';
+ 
+  document.getElementById('sessionNextBtn').textContent = sessionExIdx < total - 1 ? 'Suivant →' : '✓ Terminer';
+  document.getElementById('sessionPrevBtn').disabled    = sessionExIdx === 0;
   stopTimer();
   showTimerIdle();
 }
@@ -1494,7 +1552,6 @@ function sessionNext() {
     sessionExIdx++;
     renderSessionEx();
   } else {
-    document.getElementById('sessionProgressBar').style.width = '100%';
     closeSession();
   }
 }
