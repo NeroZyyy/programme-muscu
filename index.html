@@ -985,7 +985,7 @@ function renderContent() {
  
     html += `
     <div class="exercise-card ${ed ? 'editing' : ''} ${isOpen ? 'open' : ''}" id="card-${ex.id}">
-      <div class="ex-main" onclick="toggleDetails(${ex.id})">
+      <div class="ex-main" id="main-${ex.id}">
         <div class="ex-left">
           <div class="ex-name">${ed
             ? `<input value="${esc(ex.name)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'name',this.value)" />`
@@ -1190,7 +1190,12 @@ function initDragDrop() {
     const id       = parseInt(card.id.replace('card-', ''));
     const mainZone = card.querySelector('.ex-main');
  
+    // ── Desktop: click to toggle, mousedown to drag ──
     if (mainZone) {
+      mainZone.addEventListener('click', e => {
+        if (e.target.closest('button, input, a')) return;
+        toggleDetails(id);
+      });
       mainZone.addEventListener('mousedown', e => {
         if (e.target.closest('button, input, a')) return;
         card.setAttribute('draggable', 'true');
@@ -1211,104 +1216,114 @@ function initDragDrop() {
       }, 0);
       e.dataTransfer.effectAllowed = 'move';
     });
- 
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging', 'drag-lifted');
       card.setAttribute('draggable', 'false');
       document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('drag-over'));
     });
- 
     card.addEventListener('dragover', e => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('drag-over'));
       if (id !== dragSrcId) card.classList.add('drag-over');
     });
- 
     card.addEventListener('drop', e => {
       e.preventDefault();
       card.classList.remove('drag-over');
       if (dragSrcId === null || dragSrcId === id) return;
-      const exs      = state[activeDay].exercises;
-      const fromIdx  = exs.findIndex(e => e.id === dragSrcId);
-      const toIdx    = exs.findIndex(e => e.id === id);
+      const exs     = state[activeDay].exercises;
+      const fromIdx = exs.findIndex(e => e.id === dragSrcId);
+      const toIdx   = exs.findIndex(e => e.id === id);
       if (fromIdx < 0 || toIdx < 0) return;
-      const [moved]  = exs.splice(fromIdx, 1);
+      const [moved] = exs.splice(fromIdx, 1);
       exs.splice(toIdx, 0, moved);
       dragSrcId = null;
       save(); render();
     });
  
-    let touchCard = null;
+    // ── Mobile: tap to toggle, long-press to drag ──
     let touchStartX = 0, touchStartY = 0;
-    let touchDragStarted = false;
-    let touchHoldTimer = null;
+    let touchMoved  = false;
+    let holdTimer   = null;
+    let isDragging  = false;
+ 
     if (mainZone) {
       mainZone.addEventListener('touchstart', e => {
         if (e.target.closest('button, input, a')) return;
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
-        touchDragStarted = false;
-        // Only begin drag after 300ms hold, not on a quick tap
-        touchHoldTimer = setTimeout(() => {
-          dragSrcId = id;
-          touchCard = card;
-          touchCard.classList.add('drag-lifted');
+        touchMoved  = false;
+        isDragging  = false;
+ 
+        holdTimer = setTimeout(() => {
+          if (touchMoved) return; // finger moved — not a long press
+          isDragging = true;
+          dragSrcId  = id;
+          card.classList.add('drag-lifted');
           setTimeout(() => {
-            if (touchCard) {
-              touchCard.classList.remove('drag-lifted');
-              touchCard.classList.add('dragging');
+            if (isDragging) {
+              card.classList.remove('drag-lifted');
+              card.classList.add('dragging');
             }
           }, 150);
-          touchDragStarted = true;
-        }, 300);
+        }, 350);
       }, { passive: true });
     }
  
     card.addEventListener('touchmove', e => {
       const dx = Math.abs(e.touches[0].clientX - touchStartX);
       const dy = Math.abs(e.touches[0].clientY - touchStartY);
-      // If finger moved before hold timer fires, cancel drag intent
-      if (!touchDragStarted && (dx > 8 || dy > 8)) {
-        clearTimeout(touchHoldTimer);
-        touchHoldTimer = null;
-        return;
+      if (dx > 6 || dy > 6) {
+        touchMoved = true;
+        if (!isDragging) {
+          // Not yet dragging — cancel hold timer, let scroll happen
+          clearTimeout(holdTimer);
+          holdTimer = null;
+          return;
+        }
       }
-      if (!touchCard || dragSrcId !== id) return;
+      if (!isDragging) return;
       e.preventDefault();
       const touch  = e.touches[0];
       const els    = document.elementsFromPoint(touch.clientX, touch.clientY);
-      const target = els.find(el => el.classList.contains('exercise-card') && el !== touchCard);
+      const target = els.find(el => el.classList.contains('exercise-card') && el !== card);
       document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('drag-over'));
       if (target) target.classList.add('drag-over');
     }, { passive: false });
  
     card.addEventListener('touchend', e => {
-      clearTimeout(touchHoldTimer);
-      touchHoldTimer = null;
-      if (!touchCard || dragSrcId !== id) { touchDragStarted = false; return; }
-      touchCard.classList.remove('dragging', 'drag-lifted');
-      const touch  = e.changedTouches[0];
-      const els    = document.elementsFromPoint(touch.clientX, touch.clientY);
-      const target = els.find(el => el.classList.contains('exercise-card') && el !== touchCard);
-      document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('drag-over'));
-      if (target) {
-        const targetId = parseInt(target.id.replace('card-', ''));
-        const exs      = state[activeDay].exercises;
-        const fromIdx  = exs.findIndex(e => e.id === dragSrcId);
-        const toIdx    = exs.findIndex(e => e.id === targetId);
-        if (fromIdx >= 0 && toIdx >= 0 && fromIdx !== toIdx) {
-          const [moved] = exs.splice(fromIdx, 1);
-          exs.splice(toIdx, 0, moved);
-          save(); render(); return;
+      clearTimeout(holdTimer);
+      holdTimer = null;
+ 
+      if (isDragging) {
+        // End of drag
+        card.classList.remove('dragging', 'drag-lifted');
+        const touch  = e.changedTouches[0];
+        const els    = document.elementsFromPoint(touch.clientX, touch.clientY);
+        const target = els.find(el => el.classList.contains('exercise-card') && el !== card);
+        document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('drag-over'));
+        if (target) {
+          const targetId = parseInt(target.id.replace('card-', ''));
+          const exs      = state[activeDay].exercises;
+          const fromIdx  = exs.findIndex(e => e.id === dragSrcId);
+          const toIdx    = exs.findIndex(e => e.id === targetId);
+          if (fromIdx >= 0 && toIdx >= 0 && fromIdx !== toIdx) {
+            const [moved] = exs.splice(fromIdx, 1);
+            exs.splice(toIdx, 0, moved);
+            save(); render();
+          }
         }
+        isDragging = false;
+        dragSrcId  = null;
+      } else if (!touchMoved) {
+        // It was a tap — toggle details
+        const tgt = e.target;
+        if (!tgt.closest('button, input, a')) toggleDetails(id);
       }
-      touchCard = null;
-      dragSrcId = null;
-      touchDragStarted = false;
     });
   });
 }
+ 
  
 // ── DAY MANAGEMENT ───────────────────────────────────────
 let dayModalMode   = null;
