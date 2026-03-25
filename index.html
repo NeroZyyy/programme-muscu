@@ -1240,23 +1240,40 @@ function initDragDrop() {
     });
  
     let touchCard = null;
+    let touchStartX = 0, touchStartY = 0;
+    let touchDragStarted = false;
+    let touchHoldTimer = null;
     if (mainZone) {
       mainZone.addEventListener('touchstart', e => {
         if (e.target.closest('button, input, a')) return;
-        e.preventDefault();
-        dragSrcId = id;
-        touchCard = card;
-        touchCard.classList.add('drag-lifted');
-        setTimeout(() => {
-          if (touchCard) {
-            touchCard.classList.remove('drag-lifted');
-            touchCard.classList.add('dragging');
-          }
-        }, 150);
-      }, { passive: false });
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchDragStarted = false;
+        // Only begin drag after 300ms hold, not on a quick tap
+        touchHoldTimer = setTimeout(() => {
+          dragSrcId = id;
+          touchCard = card;
+          touchCard.classList.add('drag-lifted');
+          setTimeout(() => {
+            if (touchCard) {
+              touchCard.classList.remove('drag-lifted');
+              touchCard.classList.add('dragging');
+            }
+          }, 150);
+          touchDragStarted = true;
+        }, 300);
+      }, { passive: true });
     }
  
     card.addEventListener('touchmove', e => {
+      const dx = Math.abs(e.touches[0].clientX - touchStartX);
+      const dy = Math.abs(e.touches[0].clientY - touchStartY);
+      // If finger moved before hold timer fires, cancel drag intent
+      if (!touchDragStarted && (dx > 8 || dy > 8)) {
+        clearTimeout(touchHoldTimer);
+        touchHoldTimer = null;
+        return;
+      }
       if (!touchCard || dragSrcId !== id) return;
       e.preventDefault();
       const touch  = e.touches[0];
@@ -1267,7 +1284,9 @@ function initDragDrop() {
     }, { passive: false });
  
     card.addEventListener('touchend', e => {
-      if (!touchCard || dragSrcId !== id) return;
+      clearTimeout(touchHoldTimer);
+      touchHoldTimer = null;
+      if (!touchCard || dragSrcId !== id) { touchDragStarted = false; return; }
       touchCard.classList.remove('dragging', 'drag-lifted');
       const touch  = e.changedTouches[0];
       const els    = document.elementsFromPoint(touch.clientX, touch.clientY);
@@ -1286,6 +1305,7 @@ function initDragDrop() {
       }
       touchCard = null;
       dragSrcId = null;
+      touchDragStarted = false;
     });
   });
 }
