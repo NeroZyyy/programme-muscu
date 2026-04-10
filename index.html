@@ -837,7 +837,7 @@
       <span class="timer-idle" id="timerIdle">Prêt — lance une série</span>
     </div>
     <div class="session-actions">
-      <button class="session-btn secondary" id="sessionTimerBtn" onclick="startRestTimer()">⏱ Lancer le repos</button>
+      <button class="session-btn secondary" id="sessionTimerBtn" onclick="handleTimerBtn()">⏱ Lancer le repos</button>
       <button class="session-btn next" id="sessionNextBtn" onclick="sessionNext()">Suivant →</button>
     </div>
   </div>
@@ -873,9 +873,9 @@ const DEFAULT_DATA = {
     exercises: [
       { id: 1,  name: "Développé couché",          series: "4", reps: "8–10",   rest: "90 s", notes: "", weights: [] },
       { id: 2,  name: "Développé incliné",          series: "4", reps: "10–12",  rest: "90 s",  notes: "", weights: [] },
-      { id: 3,  name: "Butterfly",                  series: "3", reps: "12–15",  rest: "60 s",  notes: "", weights: [] },
-      { id: 4,  name: "Dips", series: "3", reps: "Max",    rest: "90 s",  notes: "", weights: [] },
-      { id: 5,  name: "Extension triceps corde",   series: "4", reps: "12",     rest: "60 s",  notes: "", weights: [] },
+      { id: 3,  name: "Butterfly",                  series: "4", reps: "12–15",  rest: "60 s",  notes: "", weights: [] },
+      { id: 4,  name: "Dips (poids corps/assisté)", series: "4", reps: "Max",    rest: "90 s",  notes: "", weights: [] },
+      { id: 5,  name: "Extensions triceps corde",   series: "4", reps: "12",     rest: "60 s",  notes: "", weights: [] },
       { id: 22, name: "Extension haltère nuque",     series: "4", reps: "10–12",  rest: "90 s",  notes: "", weights: [] },
     ]
   },
@@ -884,10 +884,10 @@ const DEFAULT_DATA = {
     exercises: [
       { id: 6,  name: "Développé militaire",  series: "4", reps: "8–10",  rest: "90 s", notes: "", weights: [] },
       { id: 7,  name: "Élévations latérales", series: "4", reps: "15–20", rest: "45 s",  notes: "", weights: [] },
-      { id: 8,  name: "Oiseau (reverse fly)", series: "3", reps: "15",    rest: "60 s",  notes: "", weights: [] },
+      { id: 8,  name: "Oiseau (reverse fly)", series: "4", reps: "15",    rest: "60 s",  notes: "", weights: [] },
       { id: 9,  name: "Shrugs (trapèzes)",    series: "4", reps: "12",    rest: "60 s",  notes: "", weights: [] },
       { id: 10, name: "Relevé de jambes",     series: "4", reps: "15–20", rest: "60 s",  notes: "", weights: [] },
-      { id: 11, name: "Gainage ballon",       series: "3", reps: "12–15", rest: "60 s",  notes: "", weights: [] },
+      { id: 11, name: "Gainage ballon",       series: "4", reps: "12–15", rest: "60 s",  notes: "", weights: [] },
       { id: 23, name: "Abdo banc",             series: "4", reps: "10",    rest: "90 s",  notes: "", weights: [] },
     ]
   },
@@ -898,7 +898,7 @@ const DEFAULT_DATA = {
       { id: 13, name: "Rowing haltère (1 bras)", series: "4", reps: "10/bras",rest: "90 s", notes: "", weights: [] },
       { id: 14, name: "Face pull",               series: "4", reps: "15",     rest: "60 s", notes: "", weights: [] },
       { id: 15, name: "Curl barre EZ",           series: "4", reps: "10",     rest: "60 s", notes: "", weights: [] },
-      { id: 16, name: "Curl marteau",            series: "3", reps: "12",     rest: "60 s", notes: "", weights: [] },
+      { id: 16, name: "Curl marteau",            series: "4", reps: "12",     rest: "60 s", notes: "", weights: [] },
       { id: 24, name: "Curl incliné",             series: "4", reps: "10–12",  rest: "90 s", notes: "", weights: [] },
     ]
   },
@@ -906,10 +906,10 @@ const DEFAULT_DATA = {
     groupe: "Jambes / Abdos",
     exercises: [
       { id: 17, name: "Presse à cuisses",      series: "4", reps: "12",    rest: "90 s", notes: "", weights: [] },
-      { id: 18, name: "Leg extension (isos)",  series: "3", reps: "15",    rest: "60 s",  notes: "", weights: [] },
-      { id: 19, name: "Leg curl (isos)",       series: "3", reps: "15",    rest: "60 s",  notes: "", weights: [] },
+      { id: 18, name: "Leg extension (isos)",  series: "4", reps: "15",    rest: "60 s",  notes: "", weights: [] },
+      { id: 19, name: "Leg curl (isos)",       series: "4", reps: "15",    rest: "60 s",  notes: "", weights: [] },
       { id: 20, name: "Mollets à la presse",   series: "4", reps: "15",    rest: "60 s",  notes: "", weights: [] },
-      { id: 21, name: "Gainage (planche)",     series: "3", reps: "1 min", rest: "45 s",  notes: "", weights: [] },
+      { id: 21, name: "Gainage (planche)",     series: "4", reps: "1 min", rest: "45 s",  notes: "", weights: [] },
     ]
   },
 };
@@ -1534,9 +1534,9 @@ function renderSessionEx() {
 }
  
 function showTimerIdle() {
-  document.getElementById('timerRing').style.display      = 'none';
-  document.getElementById('timerIdle').style.display      = '';
-  document.getElementById('sessionTimerBtn').textContent  = '⏱ Lancer le repos';
+  document.getElementById('timerRing').style.display     = 'none';
+  document.getElementById('timerIdle').style.display     = '';
+  document.getElementById('sessionTimerBtn').textContent = '⏱ Lancer le repos';
 }
  
 function startRestTimer() {
@@ -1544,10 +1544,9 @@ function startRestTimer() {
   stopTimer();
   timerTotal     = secs;
   timerRemaining = secs;
-  document.getElementById('timerRing').style.display      = '';
-  document.getElementById('timerIdle').style.display      = 'none';
-  document.getElementById('sessionTimerBtn').textContent  = '⏹ Arrêter';
-  document.getElementById('sessionTimerBtn').onclick      = stopTimer;
+  document.getElementById('timerRing').style.display     = '';
+  document.getElementById('timerIdle').style.display     = 'none';
+  document.getElementById('sessionTimerBtn').textContent = '⏹ Arrêter';
   updateTimerDisplay();
   timerInterval = setInterval(() => {
     timerRemaining--;
@@ -1555,9 +1554,7 @@ function startRestTimer() {
     if (timerRemaining <= 0) {
       stopTimer();
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-      document.getElementById('timerCount').textContent     = 'Go!';
-      document.getElementById('sessionTimerBtn').textContent = '⏱ Lancer le repos';
-      document.getElementById('sessionTimerBtn').onclick     = startRestTimer;
+      document.getElementById('timerCount').textContent = 'Go!';
     }
   }, 1000);
 }
@@ -1570,9 +1567,14 @@ function updateTimerDisplay() {
   document.getElementById('timerCircle').style.strokeDashoffset = offset;
 }
  
+function handleTimerBtn() {
+  if (timerInterval) stopTimer();
+  else startRestTimer();
+}
+ 
 function stopTimer() {
   if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-  document.getElementById('sessionTimerBtn').onclick = startRestTimer;
+  showTimerIdle();
 }
  
 function sessionNext() {
