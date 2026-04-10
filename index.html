@@ -99,13 +99,6 @@
       line-height: 1.2;
       color: var(--text);
     }
-    .header-left p {
-      font-size: 12px;
-      color: var(--text3);
-      margin-top: 6px;
-      font-family: var(--font-mono);
-      letter-spacing: 0.02em;
-    }
     .theme-btn {
       width: 34px;
       height: 34px;
@@ -346,16 +339,20 @@
  
     /* ── DETAILS PANEL ── */
     .ex-details {
-      padding: 0 16px 0;
-      border-top: 0.5px solid var(--border);
       display: grid;
       grid-template-rows: 0fr;
-      transition: grid-template-rows 0.25s ease, padding 0.25s ease;
+      transition: grid-template-rows 0.25s ease;
       overflow: hidden;
     }
-    .ex-details-inner { min-height: 0; }
-    .exercise-card.open .ex-details {
-      grid-template-rows: 1fr;
+    .ex-details-inner {
+      min-height: 0;
+      border-top: 0.5px solid transparent;
+      padding: 0 16px 0;
+      transition: border-color 0.25s ease, padding 0.25s ease;
+    }
+    .exercise-card.open .ex-details { grid-template-rows: 1fr; }
+    .exercise-card.open .ex-details-inner {
+      border-top-color: var(--border);
       padding: 0 16px 16px;
     }
  
@@ -550,12 +547,6 @@
       transition: all 0.15s;
     }
     .add-btn:hover { background: var(--bg2); border-color: var(--border2); color: var(--text2); }
- 
-    /* ── REST DAY ── */
-    .rest-day { text-align: center; padding: 4rem 1rem; }
-    .rest-icon { font-size: 40px; margin-bottom: 12px; }
-    .rest-day h2 { font-size: 22px; font-weight: 800; color: var(--text2); margin-bottom: 6px; }
-    .rest-day p  { font-size: 13px; color: var(--text3); font-family: var(--font-mono); }
  
     /* ── START SESSION BUTTON ── */
     .start-session-btn {
@@ -781,8 +772,6 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-    .session-btn.primary   { background: var(--accent); color: #0e0e0e; border-color: var(--accent); }
-    .session-btn.primary:hover { background: var(--accent2); }
     .session-btn.secondary { background: var(--bg3); color: var(--text2); }
     .session-btn.secondary:hover { background: var(--bg4); }
     .session-btn.next { background: var(--bg4); color: var(--text); border-color: var(--border2); }
@@ -854,7 +843,6 @@
   </div>
   <div class="session-nav">
     <button class="session-nav-btn" id="sessionPrevBtn" onclick="sessionPrev()">← Précédent</button>
-    <button class="session-nav-btn" id="sessionSkipBtn" onclick="sessionNext()">Passer →</button>
   </div>
 </div>
  
@@ -883,18 +871,18 @@ const DEFAULT_DATA = {
   "Pecs / Triceps": {
     groupe: "Pecs / Triceps",
     exercises: [
-      { id: 1,  name: "Développé couché",          series: "4", reps: "8–10",   rest: "2 min", notes: "", weights: [] },
+      { id: 1,  name: "Développé couché",          series: "4", reps: "8–10",   rest: "90 s", notes: "", weights: [] },
       { id: 2,  name: "Développé incliné",          series: "4", reps: "10–12",  rest: "90 s",  notes: "", weights: [] },
       { id: 3,  name: "Butterfly",                  series: "3", reps: "12–15",  rest: "60 s",  notes: "", weights: [] },
-      { id: 4,  name: "Dips (poids corps/assisté)", series: "3", reps: "Max",    rest: "90 s",  notes: "", weights: [] },
-      { id: 5,  name: "Extensions triceps corde",   series: "4", reps: "12",     rest: "60 s",  notes: "", weights: [] },
+      { id: 4,  name: "Dips", series: "3", reps: "Max",    rest: "90 s",  notes: "", weights: [] },
+      { id: 5,  name: "Extension triceps corde",   series: "4", reps: "12",     rest: "60 s",  notes: "", weights: [] },
       { id: 22, name: "Extension haltère nuque",     series: "4", reps: "10–12",  rest: "90 s",  notes: "", weights: [] },
     ]
   },
   "Épaules / Abdos": {
     groupe: "Épaules / Abdos",
     exercises: [
-      { id: 6,  name: "Développé militaire",  series: "4", reps: "8–10",  rest: "2 min", notes: "", weights: [] },
+      { id: 6,  name: "Développé militaire",  series: "4", reps: "8–10",  rest: "90 s", notes: "", weights: [] },
       { id: 7,  name: "Élévations latérales", series: "4", reps: "15–20", rest: "45 s",  notes: "", weights: [] },
       { id: 8,  name: "Oiseau (reverse fly)", series: "3", reps: "15",    rest: "60 s",  notes: "", weights: [] },
       { id: 9,  name: "Shrugs (trapèzes)",    series: "4", reps: "12",    rest: "60 s",  notes: "", weights: [] },
@@ -917,7 +905,7 @@ const DEFAULT_DATA = {
   "Jambes / Abdos": {
     groupe: "Jambes / Abdos",
     exercises: [
-      { id: 17, name: "Presse à cuisses",      series: "4", reps: "12",    rest: "2 min", notes: "", weights: [] },
+      { id: 17, name: "Presse à cuisses",      series: "4", reps: "12",    rest: "90 s", notes: "", weights: [] },
       { id: 18, name: "Leg extension (isos)",  series: "3", reps: "15",    rest: "60 s",  notes: "", weights: [] },
       { id: 19, name: "Leg curl (isos)",       series: "3", reps: "15",    rest: "60 s",  notes: "", weights: [] },
       { id: 20, name: "Mollets à la presse",   series: "4", reps: "15",    rest: "60 s",  notes: "", weights: [] },
@@ -937,7 +925,7 @@ let activeDay   = days[0];
 let editingId   = null;
 let activeTab   = {};
 let openDetails = {};
-let nextId      = 300;
+let nextId      = Math.max(300, ...Object.values(state).flatMap(d => d.exercises.map(e => e.id))) + 1;
  
 // ── PERSISTENCE ──────────────────────────────────────────
 function save() {
@@ -979,12 +967,12 @@ function renderNav() {
   const btns = days.map(d => {
     const g = state[d].groupe || d;
     return `<div class="day-btn-wrap">
-      <button class="day-btn ${d === activeDay ? 'active' : ''}" onclick="selectDay('${esc(d)}')">${esc(g)}</button>
-      <span class="day-edit-icon" onclick="openDayModal('${esc(d)}')" title="Modifier">&#9998;</span>
+      <button class="day-btn ${d === activeDay ? 'active' : ''}" data-action="select-day" data-day="${esc(d)}">${esc(g)}</button>
+      <span class="day-edit-icon" data-action="edit-day" data-day="${esc(d)}" title="Modifier">&#9998;</span>
     </div>`;
   }).join('');
   document.getElementById('daysNav').innerHTML =
-    btns + '<button class="add-day-btn" onclick="openAddDayModal()" title="Ajouter un groupe">+</button>';
+    btns + '<button class="add-day-btn" data-action="add-day" title="Ajouter un groupe">+</button>';
 }
  
 function renderContent() {
@@ -997,7 +985,7 @@ function renderContent() {
         <span class="section-title">${esc(day.groupe)}</span>
         <span class="section-count">0 exercice</span>
       </div>
-      <button class="add-btn" onclick="addEx()">+ Ajouter un exercice</button>`;
+      <button class="add-btn" data-action="add-ex">+ Ajouter un exercice</button>`;
     return;
   }
  
@@ -1006,7 +994,7 @@ function renderContent() {
       <span class="section-title">${esc(day.groupe)}</span>
       <span class="section-count">${day.exercises.length} exercice${day.exercises.length > 1 ? 's' : ''}</span>
     </div>
-    <button class="start-session-btn" onclick="startSession()">Commencer la séance</button>`;
+    <button class="start-session-btn" data-action="start-session">Commencer la séance</button>`;
  
   day.exercises.forEach((ex) => {
     const ed      = editingId === ex.id;
@@ -1021,7 +1009,7 @@ function renderContent() {
       <div class="ex-main" id="main-${ex.id}">
         <div class="ex-left">
           <div class="ex-name">${ed
-            ? `<input value="${esc(ex.name)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'name',this.value)" />`
+            ? `<input value="${esc(ex.name)}" data-action="field" data-id="${ex.id}" data-field="name" />`
             : esc(ex.name)
           }</div>
         </div>
@@ -1030,7 +1018,7 @@ function renderContent() {
           <span class="badge series">${esc(ex.series)}×</span>
           <span class="badge reps">${esc(ex.reps)}</span>
           <span class="badge rest">${esc(ex.rest)}</span>
-          <button class="edit-btn" onclick="event.stopPropagation(); toggleEdit(${ex.id})" title="${ed ? 'Fermer' : 'Modifier'}">
+          <button class="edit-btn" data-action="edit" data-id="${ex.id}" title="${ed ? 'Fermer' : 'Modifier'}">
             ${ed ? '✕' : '✎'}
           </button>
         </div>
@@ -1039,20 +1027,20 @@ function renderContent() {
     </div>`;
   });
  
-  html += `<button class="add-btn" onclick="addEx()">+ Ajouter un exercice</button>`;
+  html += `<button class="add-btn" data-action="add-ex">+ Ajouter un exercice</button>`;
   el.innerHTML = html;
 }
  
 function renderDetails(ex, tab) {
   const weightRows = (ex.weights || []).map((w, wi) => `
     <div class="weight-entry">
-      <input class="date-field" type="date" value="${esc(w.date)}" onclick="event.stopPropagation()"
-        onchange="updateWeight(${ex.id},${wi},'date',this.value)" />
-      <input class="notes-mini" placeholder="Notes séance" value="${esc(w.notes || '')}" onclick="event.stopPropagation()"
-        oninput="updateWeight(${ex.id},${wi},'notes',this.value)" />
-      <input type="text" placeholder="ex: 80 kg" value="${esc(w.weight)}" onclick="event.stopPropagation()"
-        oninput="updateWeight(${ex.id},${wi},'weight',this.value)" />
-      <button class="rm-weight" onclick="event.stopPropagation(); removeWeight(${ex.id},${wi})">×</button>
+      <input class="date-field" type="date" value="${esc(w.date)}"
+        data-action="weight" data-id="${ex.id}" data-wi="${wi}" data-field="date" />
+      <input class="notes-mini" placeholder="Notes séance" value="${esc(w.notes || '')}"
+        data-action="weight" data-id="${ex.id}" data-wi="${wi}" data-field="notes" />
+      <input type="text" placeholder="ex: 80 kg" value="${esc(w.weight)}"
+        data-action="weight" data-id="${ex.id}" data-wi="${wi}" data-field="weight" />
+      <button class="rm-weight" data-action="rm-weight" data-id="${ex.id}" data-wi="${wi}">×</button>
     </div>`).join('');
  
   const chartHtml = ex.weights && ex.weights.length >= 2
@@ -1066,29 +1054,29 @@ function renderDetails(ex, tab) {
   <div class="ex-details">
     <div class="ex-details-inner">
     <div class="details-tabs">
-      <button class="tab-btn ${tab === 'settings' ? 'active' : ''}" onclick="event.stopPropagation(); setTab(${ex.id},'settings')">Paramètres</button>
-      <button class="tab-btn ${tab === 'weights'  ? 'active' : ''}" onclick="event.stopPropagation(); setTab(${ex.id},'weights')">Suivi poids</button>
+      <button class="tab-btn ${tab === 'settings' ? 'active' : ''}" data-action="tab" data-id="${ex.id}" data-tab="settings">Paramètres</button>
+      <button class="tab-btn ${tab === 'weights'  ? 'active' : ''}" data-action="tab" data-id="${ex.id}" data-tab="weights">Suivi poids</button>
     </div>
     <div class="tab-panel ${tab === 'settings' ? 'active' : ''}">
       <div class="fields-grid">
         <div class="field-group">
           <label>Séries</label>
-          <input value="${esc(ex.series)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'series',this.value)" />
+          <input value="${esc(ex.series)}" data-action="field" data-id="${ex.id}" data-field="series" />
         </div>
         <div class="field-group">
           <label>Reps</label>
-          <input value="${esc(ex.reps)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'reps',this.value)" />
+          <input value="${esc(ex.reps)}" data-action="field" data-id="${ex.id}" data-field="reps" />
         </div>
         <div class="field-group">
           <label>Repos</label>
-          <input value="${esc(ex.rest)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'rest',this.value)" />
+          <input value="${esc(ex.rest)}" data-action="field" data-id="${ex.id}" data-field="rest" />
         </div>
       </div>
       <div class="notes-field">
         <label>Notes / instructions</label>
-        <input placeholder="Technique, sensation, charge cible…" value="${esc(ex.notes)}" onclick="event.stopPropagation()" oninput="updateField(${ex.id},'notes',this.value)" />
+        <input placeholder="Technique, sensation, charge cible…" value="${esc(ex.notes)}" data-action="field" data-id="${ex.id}" data-field="notes" />
       </div>
-      <button class="del-btn" onclick="event.stopPropagation(); deleteEx(${ex.id})">— Supprimer cet exercice</button>
+      <button class="del-btn" data-action="delete" data-id="${ex.id}">— Supprimer cet exercice</button>
     </div>
     <div class="tab-panel ${tab === 'weights' ? 'active' : ''}">
       ${chartHtml}
@@ -1099,7 +1087,7 @@ function renderDetails(ex, tab) {
         </div>` : ''}
         ${weightRows}
       </div>
-      <button class="add-weight-btn" onclick="event.stopPropagation(); addWeight(${ex.id})">+ Ajouter une séance</button>
+      <button class="add-weight-btn" data-action="add-weight" data-id="${ex.id}">+ Ajouter une séance</button>
     </div>
   </div></div>`;
 }
@@ -1109,7 +1097,8 @@ function drawCharts() {
   const day = state[activeDay];
   if (!day.exercises) return;
   day.exercises.forEach(ex => {
-    if (editingId !== ex.id) return;
+    const isOpen = openDetails[ex.id] || editingId === ex.id;
+    if (!isOpen) return;
     if ((activeTab[ex.id] || 'settings') !== 'weights') return;
     if (!ex.weights || ex.weights.length < 2) return;
     const canvas = document.getElementById(`chart-${ex.id}`);
@@ -1241,25 +1230,27 @@ function initDragDrop() {
     const mainZone = card.querySelector('.ex-main');
  
     // ── Desktop: click to toggle, mousedown to drag ──
+    let didDrag = false;
     if (mainZone) {
       mainZone.addEventListener('click', e => {
         if (e.target.closest('button, input, a')) return;
+        if (didDrag) { didDrag = false; return; } // ignore click after drag
         toggleDetails(id);
       });
       mainZone.addEventListener('mousedown', e => {
         if (e.target.closest('button, input, a')) return;
         card.setAttribute('draggable', 'true');
-        card.classList.add('drag-lifted');
       });
       mainZone.addEventListener('mouseup', () => {
         card.setAttribute('draggable', 'false');
-        card.classList.remove('drag-lifted');
       });
     }
  
     card.addEventListener('dragstart', e => {
       if (e.target.closest('button, input, a')) { e.preventDefault(); return; }
+      didDrag   = true;
       dragSrcId = id;
+      card.classList.add('drag-lifted');
       setTimeout(() => {
         card.classList.remove('drag-lifted');
         card.classList.add('dragging');
@@ -1374,6 +1365,40 @@ function initDragDrop() {
   });
 }
  
+ 
+// ── EVENT DELEGATION ────────────────────────────────────
+document.addEventListener('click', e => {
+  const el  = e.target.closest('[data-action]');
+  if (!el) return;
+  const action = el.dataset.action;
+  const id     = el.dataset.id ? parseInt(el.dataset.id) : null;
+ 
+  if (action === 'select-day')   { selectDay(el.dataset.day); return; }
+  if (action === 'edit-day')     { openDayModal(el.dataset.day); return; }
+  if (action === 'add-day')      { openAddDayModal(); return; }
+  if (action === 'start-session'){ startSession(); return; }
+  if (action === 'add-ex')       { addEx(); return; }
+  if (action === 'edit')         { e.stopPropagation(); toggleEdit(id); return; }
+  if (action === 'tab')          { e.stopPropagation(); setTab(id, el.dataset.tab); return; }
+  if (action === 'delete')       { e.stopPropagation(); deleteEx(id); return; }
+  if (action === 'add-weight')   { e.stopPropagation(); addWeight(id); return; }
+  if (action === 'rm-weight')    { e.stopPropagation(); removeWeight(id, parseInt(el.dataset.wi)); return; }
+});
+ 
+document.addEventListener('input', e => {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const action = el.dataset.action;
+  const id     = parseInt(el.dataset.id);
+  if (action === 'field')  { updateField(id, el.dataset.field, el.value); return; }
+  if (action === 'weight') { updateWeight(id, parseInt(el.dataset.wi), el.dataset.field, el.value); return; }
+});
+ 
+document.addEventListener('change', e => {
+  const el = e.target.closest('[data-action="weight"]');
+  if (!el || el.dataset.field !== 'date') return;
+  updateWeight(parseInt(el.dataset.id), parseInt(el.dataset.wi), 'date', el.value);
+});
  
 // ── DAY MANAGEMENT ───────────────────────────────────────
 let dayModalMode   = null;
