@@ -14,6 +14,7 @@
   <link rel="apple-touch-icon" href="icon-192.png" />
  
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
  
   <style>
@@ -118,7 +119,7 @@
     /* ── DAY NAV ── */
     .days-nav {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+      grid-template-columns: repeat(var(--day-cols, 3), 1fr);
       gap: 6px;
       margin-bottom: 1.75rem;
     }
@@ -138,6 +139,10 @@
       text-transform: uppercase;
       text-align: center;
       width: 100%;
+      height: 36px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .day-btn.active {
       background: rgba(255,255,255,0.92);
@@ -145,8 +150,6 @@
       border-color: rgba(255,255,255,0.92);
     }
     .day-btn:hover:not(.active) { background: rgba(255,255,255,0.13); }
-    :root.dark .day-btn { background: rgba(255,255,255,0.07); }
-    :root.dark .day-btn.active { background: rgba(255,255,255,0.92); color: #0e0e0e; border-color: rgba(255,255,255,0.92); }
  
     .day-edit-icon {
       position: absolute;
@@ -182,6 +185,7 @@
       transition: all 0.15s;
       text-align: center;
       width: 100%;
+      height: 36px;
     }
     .add-day-btn:hover { background: var(--bg2); border-color: var(--border2); color: var(--text2); }
  
@@ -385,7 +389,7 @@
       gap: 8px;
       margin-bottom: 10px;
     }
-    .field-group label {
+    .field-group label, .notes-field label {
       font-size: 10px;
       color: var(--text3);
       font-family: var(--font-mono);
@@ -394,7 +398,7 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    .field-group input {
+    .field-group input, .notes-field input {
       width: 100%;
       padding: 7px 9px;
       border: 0.5px solid var(--border);
@@ -406,30 +410,9 @@
       outline: none;
       transition: border-color 0.15s;
     }
-    .field-group input:focus { border-color: rgba(200,245,53,0.4); background: var(--bg4); }
+    .field-group input:focus, .notes-field input:focus { border-color: rgba(200,245,53,0.4); background: var(--bg4); }
  
     .notes-field { margin-bottom: 12px; }
-    .notes-field label {
-      font-size: 10px;
-      color: var(--text3);
-      font-family: var(--font-mono);
-      display: block;
-      margin-bottom: 5px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .notes-field input {
-      width: 100%;
-      padding: 7px 9px;
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      background: var(--bg3);
-      color: var(--text);
-      font-size: 13px;
-      font-family: var(--font-mono);
-      outline: none;
-    }
-    .notes-field input:focus { border-color: rgba(200,245,53,0.4); background: var(--bg4); }
  
     /* Weight tracking tab */
     .weight-log {
@@ -827,7 +810,7 @@
         <svg width="140" height="140" viewBox="0 0 140 140">
           <circle class="track" cx="70" cy="70" r="64"/>
           <circle class="prog" id="timerCircle" cx="70" cy="70" r="64"
-            stroke-dasharray="402" stroke-dashoffset="0"/>
+            stroke-dasharray="402.12" stroke-dashoffset="0"/>
         </svg>
         <div class="timer-display">
           <span class="timer-count" id="timerCount">0:00</span>
@@ -852,7 +835,7 @@
     <div class="modal-title" id="dayModalTitle">Modifier le groupe</div>
     <div class="modal-field">
       <label>Nom du groupe musculaire</label>
-      <input id="dayModalName" type="text" placeholder="ex: Pecs / Triceps" />
+      <input id="dayModalName" type="text" placeholder="ex: Pecs / Triceps" onkeydown="if(event.key==='Enter')saveDayModal()" />
     </div>
     <div class="modal-actions">
       <button class="modal-btn secondary" onclick="closeDayModal()">Annuler</button>
@@ -868,17 +851,6 @@
 <script>
 // ── DEFAULT DATA ─────────────────────────────────────────
 const DEFAULT_DATA = {
-  "Pecs / Triceps": {
-    groupe: "Pecs / Triceps",
-    exercises: [
-      { id: 1,  name: "Développé couché",          series: "4", reps: "8–10",   rest: "90 s", notes: "", weights: [] },
-      { id: 2,  name: "Développé incliné",          series: "4", reps: "10–12",  rest: "90 s",  notes: "", weights: [] },
-      { id: 3,  name: "Butterfly",                  series: "4", reps: "12–15",  rest: "60 s",  notes: "", weights: [] },
-      { id: 4,  name: "Dips (poids corps/assisté)", series: "4", reps: "Max",    rest: "90 s",  notes: "", weights: [] },
-      { id: 5,  name: "Extensions triceps corde",   series: "4", reps: "12",     rest: "60 s",  notes: "", weights: [] },
-      { id: 22, name: "Extension haltère nuque",     series: "4", reps: "10–12",  rest: "90 s",  notes: "", weights: [] },
-    ]
-  },
   "Épaules / Abdos": {
     groupe: "Épaules / Abdos",
     exercises: [
@@ -902,14 +874,15 @@ const DEFAULT_DATA = {
       { id: 24, name: "Curl incliné",             series: "4", reps: "10–12",  rest: "90 s", notes: "", weights: [] },
     ]
   },
-  "Jambes / Abdos": {
-    groupe: "Jambes / Abdos",
+  "Pecs / Triceps": {
+    groupe: "Pecs / Triceps",
     exercises: [
-      { id: 17, name: "Presse à cuisses",      series: "4", reps: "12",    rest: "90 s", notes: "", weights: [] },
-      { id: 18, name: "Leg extension (isos)",  series: "4", reps: "15",    rest: "60 s",  notes: "", weights: [] },
-      { id: 19, name: "Leg curl (isos)",       series: "4", reps: "15",    rest: "60 s",  notes: "", weights: [] },
-      { id: 20, name: "Mollets à la presse",   series: "4", reps: "15",    rest: "60 s",  notes: "", weights: [] },
-      { id: 21, name: "Gainage (planche)",     series: "4", reps: "1 min", rest: "45 s",  notes: "", weights: [] },
+      { id: 1,  name: "Développé couché",          series: "4", reps: "8–10",   rest: "90 s", notes: "", weights: [] },
+      { id: 2,  name: "Développé incliné",          series: "4", reps: "10–12",  rest: "90 s",  notes: "", weights: [] },
+      { id: 3,  name: "Butterfly",                  series: "4", reps: "12–15",  rest: "60 s",  notes: "", weights: [] },
+      { id: 4,  name: "Dips (poids corps/assisté)", series: "4", reps: "Max",    rest: "90 s",  notes: "", weights: [] },
+      { id: 5,  name: "Extensions triceps corde",   series: "4", reps: "12",     rest: "60 s",  notes: "", weights: [] },
+      { id: 22, name: "Extension haltère nuque",     series: "4", reps: "10–12",  rest: "90 s",  notes: "", weights: [] },
     ]
   },
 };
@@ -930,9 +903,7 @@ let nextId      = Math.max(300, ...Object.values(state).flatMap(d => d.exercises
 // ── PERSISTENCE ──────────────────────────────────────────
 function save() {
   try {
-    const data = JSON.stringify(state);
-    localStorage.setItem('prog_muscu_v2', data);
-    sessionStorage.setItem('prog_muscu_v2', data);
+    localStorage.setItem('prog_muscu_v2', JSON.stringify(state));
   } catch (e) { console.warn('Save error:', e); }
 }
  
@@ -955,12 +926,22 @@ function getLastWeight(ex) {
   if (!ex.weights || !ex.weights.length) return null;
   return ex.weights[ex.weights.length - 1];
 }
+function findEx(id) {
+  return state[activeDay].exercises.find(e => e.id === id) || null;
+}
+function debounce(fn, ms) {
+  let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+const debouncedSave = debounce(save, 400);
  
 // ── RENDER ───────────────────────────────────────────────
 function render() {
   renderNav();
   renderContent();
-  setTimeout(() => { drawCharts(); initDragDrop(); }, 0);
+  const needsCharts = Object.keys(openDetails).some(id => openDetails[id] && (activeTab[id] || 'settings') === 'weights')
+    || (editingId !== null && (activeTab[editingId] || 'settings') === 'weights');
+  if (needsCharts) setTimeout(drawCharts, 0);
+  setTimeout(initDragDrop, 0);
 }
  
 function renderNav() {
@@ -971,8 +952,9 @@ function renderNav() {
       <span class="day-edit-icon" data-action="edit-day" data-day="${esc(d)}" title="Modifier">&#9998;</span>
     </div>`;
   }).join('');
-  document.getElementById('daysNav').innerHTML =
-    btns + '<button class="add-day-btn" data-action="add-day" title="Ajouter un groupe">+</button>';
+  const nav = document.getElementById('daysNav');
+  nav.style.setProperty('--day-cols', days.length + 1);
+  nav.innerHTML = btns + '<button class="add-day-btn" data-action="add-day" title="Ajouter un groupe">+</button>';
 }
  
 function renderContent() {
@@ -1005,7 +987,7 @@ function renderContent() {
     const isOpen  = openDetails[ex.id] || ed;
  
     html += `
-    <div class="exercise-card ${ed ? 'editing' : ''} ${isOpen ? 'open' : ''}" id="card-${ex.id}">
+    <div class="exercise-card ${ed ? 'editing' : ''} ${isOpen ? 'open' : ''}" id="card-${ex.id}" data-exid="${ex.id}">
       <div class="ex-main" id="main-${ex.id}">
         <div class="ex-left">
           <div class="ex-name">${ed
@@ -1093,6 +1075,12 @@ function renderDetails(ex, tab) {
 }
  
 // ── MINI CHART ───────────────────────────────────────────
+const _chartCache = new Map(); // id → last drawn data hash
+ 
+function _hashWeights(weights) {
+  return weights.map(w => w.weight).join(',');
+}
+ 
 function drawCharts() {
   const day = state[activeDay];
   if (!day.exercises) return;
@@ -1103,6 +1091,11 @@ function drawCharts() {
     if (!ex.weights || ex.weights.length < 2) return;
     const canvas = document.getElementById(`chart-${ex.id}`);
     if (!canvas) return;
+ 
+    // Skip redraw if data hasn't changed
+    const hash = _hashWeights(ex.weights);
+    if (_chartCache.get(ex.id) === hash) return;
+    _chartCache.set(ex.id, hash);
  
     const dpr = window.devicePixelRatio || 1;
     const ctx  = canvas.getContext('2d');
@@ -1140,12 +1133,11 @@ function drawCharts() {
     ctx.lineWidth   = 1.5;
     ctx.stroke();
  
-    pts.forEach(p => {
-      ctx.beginPath();
-      ctx.arc(p[0], p[1], 3, 0, Math.PI * 2);
-      ctx.fillStyle = '#c8f535';
-      ctx.fill();
-    });
+    // Batch all dots in a single path instead of one beginPath/fill per dot
+    ctx.fillStyle = '#c8f535';
+    ctx.beginPath();
+    pts.forEach(p => { ctx.moveTo(p[0] + 3, p[1]); ctx.arc(p[0], p[1], 3, 0, Math.PI * 2); });
+    ctx.fill();
   });
 }
  
@@ -1173,17 +1165,20 @@ function toggleEdit(id) {
   }
 }
  
-function setTab(id, tab) { activeTab[id] = tab; render(); }
+function setTab(id, tab) {
+  activeTab[id] = tab;
+  render();
+}
  
 function updateField(id, field, val) {
-  const ex = state[activeDay].exercises.find(e => e.id === id);
+  const ex = findEx(id);
   if (!ex) return;
   ex[field] = val;
-  save();
+  debouncedSave();
   const card = document.getElementById(`card-${id}`);
   if (card) {
     card.classList.remove('flash-saved');
-    void card.offsetWidth; // reflow to restart animation
+    void card.offsetWidth;
     card.classList.add('flash-saved');
     setTimeout(() => card.classList.remove('flash-saved'), 700);
   }
@@ -1205,28 +1200,29 @@ function deleteEx(id) {
 }
  
 function addWeight(exId) {
-  const ex = state[activeDay].exercises.find(e => e.id === exId);
+  const ex = findEx(exId);
   if (!ex) return;
   ex.weights.push({ date: todayStr(), weight: '', notes: '' });
   save(); render();
 }
  
 function updateWeight(exId, wi, field, val) {
-  const ex = state[activeDay].exercises.find(e => e.id === exId);
-  if (ex && ex.weights[wi]) { ex.weights[wi][field] = val; save(); }
+  const ex = findEx(exId);
+  if (ex && ex.weights[wi]) { ex.weights[wi][field] = val; debouncedSave(); }
 }
  
 function removeWeight(exId, wi) {
-  const ex = state[activeDay].exercises.find(e => e.id === exId);
+  const ex = findEx(exId);
   if (ex) { ex.weights.splice(wi, 1); save(); render(); }
 }
  
 // ── DRAG AND DROP ────────────────────────────────────────
-let dragSrcId = null;
+let dragSrcId    = null;
+let _lastDragOver = null;
  
 function initDragDrop() {
   document.querySelectorAll('.exercise-card').forEach(card => {
-    const id       = parseInt(card.id.replace('card-', ''));
+    const id       = +card.dataset.exid;
     const mainZone = card.querySelector('.ex-main');
  
     // ── Desktop: click to toggle, mousedown to drag ──
@@ -1260,13 +1256,16 @@ function initDragDrop() {
     card.addEventListener('dragend', () => {
       card.classList.remove('dragging', 'drag-lifted');
       card.setAttribute('draggable', 'false');
-      document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('drag-over'));
+      if (_lastDragOver) { _lastDragOver.classList.remove('drag-over'); _lastDragOver = null; }
     });
     card.addEventListener('dragover', e => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-      document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('drag-over'));
-      if (id !== dragSrcId) card.classList.add('drag-over');
+      if (id !== dragSrcId) {
+        if (_lastDragOver && _lastDragOver !== card) _lastDragOver.classList.remove('drag-over');
+        card.classList.add('drag-over');
+        _lastDragOver = card;
+      }
     });
     card.addEventListener('drop', e => {
       e.preventDefault();
@@ -1344,7 +1343,7 @@ function initDragDrop() {
         const target = els.find(el => el.classList.contains('exercise-card') && el !== card);
         document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('drag-over'));
         if (target) {
-          const targetId = parseInt(target.id.replace('card-', ''));
+          const targetId = +target.dataset.exid;
           const exs      = state[activeDay].exercises;
           const fromIdx  = exs.findIndex(e => e.id === dragSrcId);
           const toIdx    = exs.findIndex(e => e.id === targetId);
@@ -1365,6 +1364,15 @@ function initDragDrop() {
   });
 }
  
+ 
+// ── KEYBOARD SHORTCUTS ───────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (DOM.sessionOverlay.style.display !== 'none') { closeSession(); return; }
+    if (document.getElementById('dayModal').style.display !== 'none') { document.getElementById('dayModal').style.display = 'none'; return; }
+    if (editingId !== null) { editingId = null; render(); }
+  }
+});
  
 // ── EVENT DELEGATION ────────────────────────────────────
 document.addEventListener('click', e => {
@@ -1479,15 +1487,19 @@ let timerInterval  = null;
 let timerTotal     = 0;
 let timerRemaining = 0;
  
+const _restCache = new Map();
 function parseRestSeconds(restStr) {
   if (!restStr) return 60;
+  if (_restCache.has(restStr)) return _restCache.get(restStr);
   const s        = restStr.toLowerCase();
   const minMatch = s.match(/(\d+)\s*min/);
   const secMatch = s.match(/(\d+)\s*s\b/);
   let total = 0;
   if (minMatch) total += parseInt(minMatch[1]) * 60;
   if (secMatch) total += parseInt(secMatch[1]);
-  return total || 60;
+  const result = total || 60;
+  _restCache.set(restStr, result);
+  return result;
 }
  
 function startSession() {
@@ -1495,13 +1507,13 @@ function startSession() {
   if (!sessionExs.length) return;
   sessionExIdx = 0;
   stopTimer();
-  document.getElementById('sessionOverlay').style.display = 'flex';
+  DOM.sessionOverlay.style.display = 'flex';
   renderSessionEx();
 }
  
 function closeSession() {
   stopTimer();
-  document.getElementById('sessionOverlay').style.display = 'none';
+  DOM.sessionOverlay.style.display = 'none';
 }
  
 function renderSessionEx() {
@@ -1509,34 +1521,34 @@ function renderSessionEx() {
   const total = sessionExs.length;
   const next  = sessionExs[sessionExIdx + 1];
  
-  document.getElementById('sessionDayTitle').textContent    = state[activeDay].groupe;
-  document.getElementById('sessionExNum').textContent       = `Exercice ${sessionExIdx + 1} / ${total}`;
-  document.getElementById('sessionExName').textContent      = ex.name;
+  DOM.sessionDayTitle.textContent  = state[activeDay].groupe;
+  DOM.sessionExNum.textContent     = `Exercice ${sessionExIdx + 1} / ${total}`;
+  DOM.sessionExName.textContent    = ex.name;
   // Step dots
-  document.getElementById('sessionSteps').innerHTML = sessionExs.map((_, i) =>
+  DOM.sessionSteps.innerHTML = sessionExs.map((_, i) =>
     `<div class="session-step ${i < sessionExIdx ? 'done' : i === sessionExIdx ? 'current' : ''}"></div>`
   ).join('');
  
-  document.getElementById('sessionBadges').innerHTML =
+  DOM.sessionBadges.innerHTML =
     `<span class="session-badge series">${esc(ex.series)} séries</span>
      <span class="session-badge reps">${esc(ex.reps)} rép</span>
      <span class="session-badge rest">${esc(ex.rest)}</span>`;
-  document.getElementById('sessionNotes').textContent = ex.notes || '';
+  DOM.sessionNotes.textContent = ex.notes || '';
  
   // Next exercise
-  const nextEl = document.getElementById('sessionNextEx');
+  const nextEl = DOM.sessionNextEx;
   nextEl.innerHTML = next ? `Ensuite : <span>${esc(next.name)}</span>` : '';
  
-  document.getElementById('sessionNextBtn').textContent = sessionExIdx < total - 1 ? 'Suivant →' : '✓ Terminer';
-  document.getElementById('sessionPrevBtn').disabled    = sessionExIdx === 0;
+  DOM.sessionNextBtn.textContent = sessionExIdx < total - 1 ? 'Suivant →' : '✓ Terminer';
+  DOM.sessionPrevBtn.disabled    = sessionExIdx === 0;
   stopTimer();
   showTimerIdle();
 }
  
 function showTimerIdle() {
-  document.getElementById('timerRing').style.display     = 'none';
-  document.getElementById('timerIdle').style.display     = '';
-  document.getElementById('sessionTimerBtn').textContent = '⏱ Lancer le repos';
+  DOM.timerRing.style.display     = 'none';
+  DOM.timerIdle.style.display     = '';
+  DOM.sessionTimerBtn.textContent = '⏱ Lancer le repos';
 }
  
 function startRestTimer() {
@@ -1544,9 +1556,9 @@ function startRestTimer() {
   stopTimer();
   timerTotal     = secs;
   timerRemaining = secs;
-  document.getElementById('timerRing').style.display     = '';
-  document.getElementById('timerIdle').style.display     = 'none';
-  document.getElementById('sessionTimerBtn').textContent = '⏹ Arrêter';
+  DOM.timerRing.style.display     = '';
+  DOM.timerIdle.style.display     = 'none';
+  DOM.sessionTimerBtn.textContent = '⏹ Arrêter';
   updateTimerDisplay();
   timerInterval = setInterval(() => {
     timerRemaining--;
@@ -1554,7 +1566,7 @@ function startRestTimer() {
     if (timerRemaining <= 0) {
       stopTimer();
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-      document.getElementById('timerCount').textContent = 'Go!';
+      DOM.timerCount.textContent = 'Go!';
     }
   }, 1000);
 }
@@ -1562,9 +1574,10 @@ function startRestTimer() {
 function updateTimerDisplay() {
   const m = Math.floor(timerRemaining / 60);
   const s = timerRemaining % 60;
-  document.getElementById('timerCount').textContent = `${m}:${String(s).padStart(2, '0')}`;
-  const offset = 2 * Math.PI * 64 * (1 - timerRemaining / timerTotal);
-  document.getElementById('timerCircle').style.strokeDashoffset = offset;
+  DOM.timerCount.textContent = `${m}:${String(s).padStart(2, '0')}`;
+  const circumference = 2 * Math.PI * 64;
+  const offset = circumference * (1 - timerRemaining / timerTotal);
+  DOM.timerCircle.style.strokeDashoffset = offset;
 }
  
 function handleTimerBtn() {
@@ -1601,15 +1614,32 @@ function toggleTheme() {
   const saved = localStorage.getItem('muscu_theme');
   if (saved === 'dark') {
     document.documentElement.classList.add('dark');
-    document.addEventListener('DOMContentLoaded', () => {
-      const btn = document.getElementById('themeBtn');
-      if (btn) btn.textContent = '☀️';
-    });
+    const btn = document.getElementById('themeBtn');
+    if (btn) btn.textContent = '☀️';
   }
 })();
  
 // ── INIT ─────────────────────────────────────────────────
 render();
+ 
+// Cache session overlay DOM refs (queried repeatedly during timer ticks)
+const DOM = {
+  sessionOverlay:   document.getElementById('sessionOverlay'),
+  sessionDayTitle:  document.getElementById('sessionDayTitle'),
+  sessionExNum:     document.getElementById('sessionExNum'),
+  sessionExName:    document.getElementById('sessionExName'),
+  sessionSteps:     document.getElementById('sessionSteps'),
+  sessionBadges:    document.getElementById('sessionBadges'),
+  sessionNotes:     document.getElementById('sessionNotes'),
+  sessionNextEx:    document.getElementById('sessionNextEx'),
+  sessionNextBtn:   document.getElementById('sessionNextBtn'),
+  sessionPrevBtn:   document.getElementById('sessionPrevBtn'),
+  sessionTimerBtn:  document.getElementById('sessionTimerBtn'),
+  timerRing:        document.getElementById('timerRing'),
+  timerIdle:        document.getElementById('timerIdle'),
+  timerCount:       document.getElementById('timerCount'),
+  timerCircle:      document.getElementById('timerCircle'),
+};
  
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
