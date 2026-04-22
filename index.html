@@ -724,13 +724,44 @@
       font-style: italic;
     }
  
+    /* Series counter */
+    .session-series-counter {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+    }
+    .series-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .series-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border2);
+      background: transparent;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .series-dot.done {
+      background: var(--text);
+      border-color: var(--text);
+    }
+    .series-counter-label {
+      font-size: 12px;
+      color: var(--text3);
+      letter-spacing: 0.05em;
+      min-width: 60px;
+    }
+
     /* Timer */
     .session-timer { display: flex; flex-direction: column; align-items: center; gap: 8px; }
     .timer-ring { position: relative; width: 140px; height: 140px; }
     .timer-ring svg { transform: rotate(-90deg); }
     .timer-ring circle { fill: none; }
     .timer-ring .track { stroke: var(--border2); stroke-width: 4; }
-    .timer-ring .prog  { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 0.5s linear; }
+    .timer-ring .prog  { stroke: var(--text2); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 0.5s linear; }
     .timer-display {
       position: absolute;
       inset: 0;
@@ -777,6 +808,59 @@
     }
     .session-nav-btn:hover:not(:disabled) { background: var(--bg3); color: var(--text2); }
     .session-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      display: flex;
+      justify-content: center;
+      padding: 0 1rem env(safe-area-inset-bottom);
+      background: var(--bg);
+      border-top: 0.5px solid var(--border2);
+    }
+    .bottom-nav-inner {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      max-width: 520px;
+      padding: 10px 0;
+    }
+    .bottom-nav-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 0.5px solid var(--border2);
+      background: var(--bg3);
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font-display);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      line-height: 1;
+    }
+    .bottom-nav-btn .nav-icon { font-size: 16px; }
+    .bottom-nav-btn:hover { background: var(--bg4); color: var(--text2); }
+    .bottom-nav-btn.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-color: rgba(200,245,53,0.25);
+    }
+    :root:not(.dark) .bottom-nav-btn.active {
+      background: #1a1a18;
+      color: #f7f6f2;
+      border-color: #1a1a18;
+    }
   </style>
 </head>
 <body>
@@ -792,6 +876,18 @@
   <div id="content"></div>
 </div>
  
+<!-- Bottom navigation -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bottom-nav-btn active" id="navGym" onclick="switchPage('gym')">
+      <span class="nav-icon">🏋️</span>GYM
+    </button>
+    <button class="bottom-nav-btn" id="navBW" onclick="switchPage('bodyweight')">
+      <span class="nav-icon">🤸</span>BODYWEIGHT
+    </button>
+  </div>
+</nav>
+
 <!-- Session overlay -->
 <div class="session-overlay" id="sessionOverlay" style="display:none">
   <div class="session-header">
@@ -804,6 +900,10 @@
     <div class="session-ex-name" id="sessionExName"></div>
     <div class="session-badges" id="sessionBadges"></div>
     <div class="session-notes" id="sessionNotes"></div>
+    <div class="session-series-counter" id="sessionSeriesCounter">
+      <div class="series-dots" id="seriesDots"></div>
+      <span class="series-counter-label" id="seriesCounterLabel"></span>
+    </div>
     <div class="session-next-ex" id="sessionNextEx"></div>
     <div class="session-timer" id="sessionTimerZone">
       <div class="timer-ring" id="timerRing" style="display:none">
@@ -849,14 +949,14 @@
 </div>
  
 <script>
-// ── DEFAULT DATA ─────────────────────────────────────────
+// ── DEFAULT DATA — GYM ───────────────────────────────────
 const DEFAULT_DATA = {
   "Épaules / Abdos": {
     groupe: "Épaules / Abdos",
     exercises: [
       { id: 6,  name: "Développé militaire",  series: "4", reps: "8–10",  rest: "90 s", notes: "", weights: [] },
-      { id: 7,  name: "Élévations latérales", series: "4", reps: "15–20", rest: "45 s",  notes: "", weights: [] },
-      { id: 8,  name: "Oiseau (reverse fly)", series: "4", reps: "15",    rest: "60 s",  notes: "", weights: [] },
+      { id: 7,  name: "Élévations latérales", series: "4", reps: "15–20", rest: "90 s",  notes: "", weights: [] },
+      { id: 8,  name: "Oiseau (reverse fly)", series: "4", reps: "15",    rest: "90 s",  notes: "", weights: [] },
       { id: 9,  name: "Shrugs (trapèzes)",    series: "4", reps: "12",    rest: "60 s",  notes: "", weights: [] },
       { id: 10, name: "Relevé de jambes",     series: "4", reps: "15–20", rest: "60 s",  notes: "", weights: [] },
       { id: 11, name: "Gainage ballon",       series: "4", reps: "12–15", rest: "60 s",  notes: "", weights: [] },
@@ -869,8 +969,8 @@ const DEFAULT_DATA = {
       { id: 12, name: "Tirage poitrine",         series: "4", reps: "10–12",  rest: "90 s", notes: "", weights: [] },
       { id: 13, name: "Rowing haltère (1 bras)", series: "4", reps: "10/bras",rest: "90 s", notes: "", weights: [] },
       { id: 14, name: "Face pull",               series: "4", reps: "15",     rest: "60 s", notes: "", weights: [] },
-      { id: 15, name: "Curl barre EZ",           series: "4", reps: "10",     rest: "60 s", notes: "", weights: [] },
-      { id: 16, name: "Curl marteau",            series: "4", reps: "12",     rest: "60 s", notes: "", weights: [] },
+      { id: 15, name: "Curl barre EZ",           series: "4", reps: "10",     rest: "90 s", notes: "", weights: [] },
+      { id: 16, name: "Curl marteau",            series: "4", reps: "12",     rest: "90 s", notes: "", weights: [] },
       { id: 24, name: "Curl incliné",             series: "4", reps: "10–12",  rest: "90 s", notes: "", weights: [] },
     ]
   },
@@ -886,37 +986,100 @@ const DEFAULT_DATA = {
     ]
   },
 };
- 
-// ── STATE ────────────────────────────────────────────────
-let state = load() || DEFAULT_DATA;
-Object.values(state).forEach(d =>
-  d.exercises && d.exercises.forEach(ex => { if (!ex.weights) ex.weights = []; })
+
+// ── DEFAULT DATA — BODYWEIGHT ─────────────────────────────
+const DEFAULT_DATA_BW = {
+  "Push": {
+    groupe: "Push",
+    exercises: [
+      { id: 101, name: "Pompes",                 series: "4", reps: "Max",      rest: "60 s", notes: "", weights: [] },
+      { id: 102, name: "Pompes déclinées",        series: "3", reps: "12–15",   rest: "60 s", notes: "", weights: [] },
+      { id: 103, name: "Pompes diamant",          series: "3", reps: "10–12",   rest: "60 s", notes: "", weights: [] },
+      { id: 104, name: "Dips chaise",             series: "3", reps: "12–15",   rest: "60 s", notes: "", weights: [] },
+      { id: 105, name: "Pike push-up",            series: "3", reps: "10–12",   rest: "60 s", notes: "", weights: [] },
+    ]
+  },
+  "Pull": {
+    groupe: "Pull",
+    exercises: [
+      { id: 106, name: "Tractions",               series: "4", reps: "Max",      rest: "90 s", notes: "", weights: [] },
+      { id: 107, name: "Tractions australiennes", series: "3", reps: "12–15",   rest: "60 s", notes: "", weights: [] },
+      { id: 108, name: "Curl serviette (biceps)", series: "3", reps: "12",       rest: "60 s", notes: "", weights: [] },
+    ]
+  },
+  "Legs / Core": {
+    groupe: "Legs / Core",
+    exercises: [
+      { id: 109, name: "Squats",                  series: "4", reps: "20",       rest: "60 s", notes: "", weights: [] },
+      { id: 110, name: "Fentes marchées",         series: "3", reps: "12/jambe", rest: "60 s", notes: "", weights: [] },
+      { id: 111, name: "Pistol squat (assisté)",  series: "3", reps: "8/jambe",  rest: "90 s", notes: "", weights: [] },
+      { id: 112, name: "Gainage (planche)",       series: "4", reps: "1 min",    rest: "45 s", notes: "", weights: [] },
+      { id: 113, name: "Crunchs",                 series: "3", reps: "20",       rest: "45 s", notes: "", weights: [] },
+      { id: 114, name: "Relevé de jambes",        series: "3", reps: "15",       rest: "45 s", notes: "", weights: [] },
+    ]
+  },
+};
+
+// ── PERSISTENCE ──────────────────────────────────────────
+function _loadFromStorage(key, fallback) {
+  try {
+    const ls = localStorage.getItem(key);
+    if (ls) return JSON.parse(ls);
+    // Legacy migration for gym
+    if (key === 'prog_muscu_gym') {
+      const legacy = localStorage.getItem('prog_muscu_v2');
+      if (legacy) return JSON.parse(legacy);
+    }
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(fallback)); // deep clone default
+}
+
+function save() {
+  try {
+    const key = activePage === 'gym' ? 'prog_muscu_gym' : 'prog_muscu_bw';
+    localStorage.setItem(key, JSON.stringify(state));
+  } catch (e) { console.warn('Save error:', e); }
+}
+
+// ── STATE ─────────────────────────────────────────────────
+let activePage = localStorage.getItem('muscu_page') || 'gym';
+
+const _stateGym = _loadFromStorage('prog_muscu_gym', DEFAULT_DATA);
+const _stateBW  = _loadFromStorage('prog_muscu_bw',  DEFAULT_DATA_BW);
+[_stateGym, _stateBW].forEach(st =>
+  Object.values(st).forEach(d =>
+    d.exercises && d.exercises.forEach(ex => { if (!ex.weights) ex.weights = []; })
+  )
 );
- 
-const days      = Object.keys(state);
-let activeDay   = days[0];
+
+let state     = activePage === 'gym' ? _stateGym : _stateBW;
+let days      = Object.keys(state);
+let activeDay = days[0];
 let editingId   = null;
 let activeTab   = {};
 let openDetails = {};
-let nextId      = Math.max(300, ...Object.values(state).flatMap(d => d.exercises.map(e => e.id))) + 1;
- 
-// ── PERSISTENCE ──────────────────────────────────────────
-function save() {
-  try {
-    localStorage.setItem('prog_muscu_v2', JSON.stringify(state));
-  } catch (e) { console.warn('Save error:', e); }
+let nextId = Math.max(300,
+  ...Object.values(_stateGym).flatMap(d => d.exercises.map(e => e.id)),
+  ...Object.values(_stateBW).flatMap(d => d.exercises.map(e => e.id))
+) + 1;
+
+// ── PAGE SWITCH ───────────────────────────────────────────
+function switchPage(page) {
+  if (page === activePage) return;
+  activePage = page;
+  localStorage.setItem('muscu_page', page);
+  state     = activePage === 'gym' ? _stateGym : _stateBW;
+  days      = Object.keys(state);
+  activeDay = days[0];
+  editingId   = null;
+  activeTab   = {};
+  openDetails = {};
+  _chartCache.clear();
+  document.getElementById('navGym').classList.toggle('active', page === 'gym');
+  document.getElementById('navBW').classList.toggle('active', page === 'bodyweight');
+  render();
 }
- 
-function load() {
-  try {
-    const ls = localStorage.getItem('prog_muscu_v2');
-    if (ls) return JSON.parse(ls);
-    const ss = sessionStorage.getItem('prog_muscu_v2');
-    if (ss) return JSON.parse(ss);
-  } catch (e) {}
-  return null;
-}
- 
+
 // ── HELPERS ──────────────────────────────────────────────
 function esc(s) {
   return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1076,11 +1239,11 @@ function renderDetails(ex, tab) {
  
 // ── MINI CHART ───────────────────────────────────────────
 const _chartCache = new Map(); // id → last drawn data hash
- 
+
 function _hashWeights(weights) {
   return weights.map(w => w.weight).join(',');
 }
- 
+
 function drawCharts() {
   const day = state[activeDay];
   if (!day.exercises) return;
@@ -1091,21 +1254,21 @@ function drawCharts() {
     if (!ex.weights || ex.weights.length < 2) return;
     const canvas = document.getElementById(`chart-${ex.id}`);
     if (!canvas) return;
- 
+
     // Skip redraw if data hasn't changed
     const hash = _hashWeights(ex.weights);
     if (_chartCache.get(ex.id) === hash) return;
     _chartCache.set(ex.id, hash);
- 
+
     const dpr = window.devicePixelRatio || 1;
     const ctx  = canvas.getContext('2d');
     canvas.width  = (canvas.offsetWidth || 480) * dpr;
     canvas.height = 48 * dpr;
     ctx.scale(dpr, dpr);
- 
+
     const vals = ex.weights.map(w => parseFloat(w.weight)).filter(v => !isNaN(v));
     if (vals.length < 2) return;
- 
+
     const W     = canvas.offsetWidth || 480, H = 48;
     const min   = Math.min(...vals), max = Math.max(...vals);
     const range = max - min || 1;
@@ -1113,9 +1276,9 @@ function drawCharts() {
       (i / (vals.length - 1)) * (W - 20) + 10,
       H - 8 - ((v - min) / range) * (H - 16),
     ]);
- 
+
     ctx.clearRect(0, 0, W, H);
- 
+
     const grad = ctx.createLinearGradient(0, 0, 0, H);
     grad.addColorStop(0, 'rgba(200,245,53,0.25)');
     grad.addColorStop(1, 'rgba(200,245,53,0.0)');
@@ -1126,13 +1289,13 @@ function drawCharts() {
     ctx.closePath();
     ctx.fillStyle = grad;
     ctx.fill();
- 
+
     ctx.beginPath();
     pts.forEach((p, i) => i === 0 ? ctx.moveTo(p[0], p[1]) : ctx.lineTo(p[0], p[1]));
     ctx.strokeStyle = '#c8f535';
     ctx.lineWidth   = 1.5;
     ctx.stroke();
- 
+
     // Batch all dots in a single path instead of one beginPath/fill per dot
     ctx.fillStyle = '#c8f535';
     ctx.beginPath();
@@ -1373,7 +1536,7 @@ document.addEventListener('keydown', e => {
     if (editingId !== null) { editingId = null; render(); }
   }
 });
- 
+
 // ── EVENT DELEGATION ────────────────────────────────────
 document.addEventListener('click', e => {
   const el  = e.target.closest('[data-action]');
@@ -1442,7 +1605,7 @@ function closeDayModal(e) {
 function saveDayModal() {
   const newName = document.getElementById('dayModalName').value.trim();
   if (!newName) return;
- 
+
   if (dayModalMode === 'add') {
     if (state[newName]) { alert('Ce groupe existe déjà.'); return; }
     state[newName] = { groupe: newName, exercises: [] };
@@ -1462,7 +1625,7 @@ function saveDayModal() {
     }
     state[newName].groupe = newName;
   }
- 
+
   save();
   document.getElementById('dayModal').style.display = 'none';
   render();
@@ -1486,6 +1649,19 @@ let sessionExs     = [];
 let timerInterval  = null;
 let timerTotal     = 0;
 let timerRemaining = 0;
+let sessionSeriesDone = 0;
+
+function updateSeriesCounter() {
+  const ex        = sessionExs[sessionExIdx];
+  const total     = parseInt(ex.series) || 4;
+  const done      = sessionSeriesDone;
+  const dots      = document.getElementById('seriesDots');
+  const label     = document.getElementById('seriesCounterLabel');
+  dots.innerHTML  = Array.from({ length: total }, (_, i) =>
+    `<div class="series-dot ${i < done ? 'done' : ''}"></div>`
+  ).join('');
+  label.textContent = `${done} / ${total} séries`;
+}
  
 const _restCache = new Map();
 function parseRestSeconds(restStr) {
@@ -1542,6 +1718,8 @@ function renderSessionEx() {
   DOM.sessionNextBtn.textContent = sessionExIdx < total - 1 ? 'Suivant →' : '✓ Terminer';
   DOM.sessionPrevBtn.disabled    = sessionExIdx === 0;
   stopTimer();
+  sessionSeriesDone = 0;
+  updateSeriesCounter();
   showTimerIdle();
 }
  
@@ -1556,6 +1734,13 @@ function startRestTimer() {
   stopTimer();
   timerTotal     = secs;
   timerRemaining = secs;
+  sessionSeriesDone++;
+  updateSeriesCounter();
+
+  const ex       = sessionExs[sessionExIdx];
+  const total    = parseInt(ex.series) || 4;
+  const isLast   = sessionSeriesDone >= total;
+
   DOM.timerRing.style.display     = '';
   DOM.timerIdle.style.display     = 'none';
   DOM.sessionTimerBtn.textContent = '⏹ Arrêter';
@@ -1566,11 +1751,15 @@ function startRestTimer() {
     if (timerRemaining <= 0) {
       stopTimer();
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-      DOM.timerCount.textContent = 'Go!';
+      if (isLast) {
+        sessionNext();
+      } else {
+        DOM.timerCount.textContent = 'Go!';
+      }
     }
   }, 1000);
 }
- 
+
 function updateTimerDisplay() {
   const m = Math.floor(timerRemaining / 60);
   const s = timerRemaining % 60;
@@ -1621,7 +1810,10 @@ function toggleTheme() {
  
 // ── INIT ─────────────────────────────────────────────────
 render();
- 
+// Sync bottom nav active state with saved page
+document.getElementById('navGym').classList.toggle('active', activePage === 'gym');
+document.getElementById('navBW').classList.toggle('active', activePage === 'bodyweight');
+
 // Cache session overlay DOM refs (queried repeatedly during timer ticks)
 const DOM = {
   sessionOverlay:   document.getElementById('sessionOverlay'),
@@ -1639,6 +1831,8 @@ const DOM = {
   timerIdle:        document.getElementById('timerIdle'),
   timerCount:       document.getElementById('timerCount'),
   timerCircle:      document.getElementById('timerCircle'),
+  seriesDots:       document.getElementById('seriesDots'),
+  seriesLabel:      document.getElementById('seriesCounterLabel'),
 };
  
 if ('serviceWorker' in navigator) {
