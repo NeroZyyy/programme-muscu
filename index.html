@@ -81,7 +81,7 @@
     .app {
       max-width: 520px;
       margin: 0 auto;
-      padding: 0 1rem calc(6rem + env(safe-area-inset-bottom));
+      padding: 0 1rem calc(8rem + env(safe-area-inset-bottom));
       padding-top: env(safe-area-inset-top);
     }
  
@@ -818,7 +818,8 @@
       z-index: 50;
       display: flex;
       justify-content: center;
-      padding: 0 1rem env(safe-area-inset-bottom);
+      padding: 0 1rem;
+      padding-bottom: max(env(safe-area-inset-bottom), 12px);
       background: var(--bg);
       border-top: 0.5px solid var(--border2);
     }
@@ -1842,4 +1843,3 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
-
