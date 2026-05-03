@@ -1,22 +1,24 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Z-lift</title>
- 
+
   <!-- PWA -->
+
   <link rel="manifest" href="manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Z-lift" />
   <meta name="theme-color" content="#0e0e0e" />
   <link rel="apple-touch-icon" href="icon-192.png" />
- 
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
- 
+
   <style>
     /* ── RESET ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -863,9 +865,10 @@
       border-color: #1a1a18;
     }
   </style>
+
 </head>
 <body>
- 
+
 <div class="app">
   <div class="header">
     <div class="header-left">
@@ -876,8 +879,9 @@
   <div class="days-nav" id="daysNav"></div>
   <div id="content"></div>
 </div>
- 
+
 <!-- Bottom navigation -->
+
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
     <button class="bottom-nav-btn active" id="navGym" onclick="switchPage('gym')">
@@ -890,6 +894,7 @@
 </nav>
 
 <!-- Session overlay -->
+
 <div class="session-overlay" id="sessionOverlay" style="display:none">
   <div class="session-header">
     <span class="session-title" id="sessionDayTitle"></span>
@@ -929,8 +934,9 @@
     <button class="session-nav-btn" id="sessionPrevBtn" onclick="sessionPrev()">← Précédent</button>
   </div>
 </div>
- 
+
 <!-- Day edit modal -->
+
 <div class="modal-overlay" id="dayModal" style="display:none" onclick="closeDayModal(event)">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-title" id="dayModalTitle">Modifier le groupe</div>
@@ -948,7 +954,7 @@
     </div>
   </div>
 </div>
- 
+
 <script>
 // ── DEFAULT DATA — GYM ───────────────────────────────────
 const DEFAULT_DATA = {
@@ -957,7 +963,7 @@ const DEFAULT_DATA = {
     exercises: [
       { id: 10, name: "Relevé de jambes",     series: "4", reps: "15–20", rest: "60 s",  notes: "", weights: [] },
       { id: 11, name: "Gainage ballon",       series: "4", reps: "12–15", rest: "60 s",  notes: "", weights: [] },
-      { id: 23, name: "Abdo banc",             series: "4", reps: "10",    rest: "90 s",  notes: "", weights: [] },
+      { id: 23, name: "Abdo banc",             series: "4", reps: "15",    rest: "90 s",  notes: "", weights: [] },
       { id: 6,  name: "Développé militaire",  series: "4", reps: "8–10",  rest: "90 s", notes: "", weights: [] },
       { id: 7,  name: "Élévations latérales", series: "4", reps: "15–20", rest: "90 s",  notes: "", weights: [] },
       { id: 8,  name: "Oiseau (reverse fly)", series: "4", reps: "15",    rest: "90 s",  notes: "", weights: [] },
@@ -1841,5 +1847,6 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
 </script>
+
 </body>
 </html>
